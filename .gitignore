@@ -1,0 +1,5 @@
+*.ignore
+*.swp
+node_modules/
+config.json
+persist.json
