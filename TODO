@@ -1,0 +1,4 @@
+- better persistence (sqlite?)
+- lil library for the repl (easy to send messages, plugin management?)
+- API key management
+  - does this need to be separate from general persistence?

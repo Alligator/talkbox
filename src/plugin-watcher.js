@@ -38,7 +38,7 @@ class PluginWatcher {
         setInterval,
         clearInterval,
         require,
-        db,
+        db: db.wrapForPlugin(path.basename(fileName, '.js')),
         log: pluginLog(fileName),
         Math,
       };

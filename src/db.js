@@ -22,7 +22,21 @@ function read(key) {
   return store[key];
 }
 
+function has(key) {
+  return store.hasOwnProperty(key);
+}
+
+function wrapForPlugin(name) {
+  return {
+    write: (key, value) => write(`${name}_${key}`, value),
+    read: (key) => read(`${name}_${key}`),
+    has: (key) => has(`${name}_${key}`),
+  };
+}
+
 module.exports = {
   write,
   read,
+  has,
+  wrapForPlugin,
 };

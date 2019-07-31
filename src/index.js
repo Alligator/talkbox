@@ -53,6 +53,9 @@ client.on('message', (rawMessage) => {
     const plugin = pw.getPlugin(cmd.commandName);
     if (plugin) {
       currentOutput = plugin(currentOutput, rawMessage);
+    } else {
+      rawMessage.channel.send(`unknown command ${cmd.commandName}`);
+      return;
     }
   }
 
