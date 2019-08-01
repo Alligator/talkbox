@@ -4,10 +4,12 @@ This is a javascript discord bot, designed to be simple and easy to extend.
 ## running it
 Create a config.json file that looks like this:
 
-    {
-      "token": "API TOKEN HERE",
-      "leader": ","
-    }
+```json
+{
+  "token": "API TOKEN HERE",
+  "leader": ","
+}
+```
 
 The token is your bot token, the leader is the character users have to put before commands, e.g. `,echo`.
 
@@ -32,11 +34,13 @@ A plugin is a .js file in the plugins directory. talkbox monitors this directory
 
 Here's a simple plugin:
 
-    function echo(text) {
-      return 'you said ' + text;
-    }
+```js
+function echo(text) {
+  return 'you said ' + text;
+}
 
-    commands = { echo };
+commands = { echo };
+```
 
 You register commands by setting the global `commands` object. The key is the name of the command and the value is the function to call.
 
@@ -44,14 +48,16 @@ The function is passed the text that followed the command, and anything returned
 
 Here's a slightly more complex plugin:
 
-    function echoLater(text, message) {
-      setTimeout(() => {
-        message.channel.send('you said ' + text);
-      }, 6000);
-      return 'echoing later...';
-    }
+```js
+function echoLater(text, message) {
+  setTimeout(() => {
+    message.channel.send('you said ' + text);
+  }, 6000);
+  return 'echoing later...';
+}
 
-    commands = { echoLater };
+commands = { echoLater };
+```
 
 The second argument to the plugin is a [discord.js message object](https://discord.js.org/#/docs/main/stable/class/Message). From this you can get to the channel the message came from, the author, or the discord client itself. It's useful if you want to send multiple messages like above.
 
@@ -60,34 +66,38 @@ You can also create interval commands, which are run by talkbox on a timer. Thes
 
 *Note that this is currently broken, oops, will be fixed soon!*
 
-    function heartbeat(client) {
-      const owner = client.users.get('1234');
-      owner.send('i\'m still alive!!');
-    }
+```js
+function heartbeat(client) {
+  const owner = client.users.get('1234');
+  owner.send('i\'m still alive!!');
+}
 
-    // interval is in ms, so this is every hour
-    heartbeat._interval = 60 * 60 * 1000;
+// interval is in ms, so this is every hour
+heartbeat._interval = 60 * 60 * 1000;
+```
 
 talbox will register any function with a `_interval` property as an interval command.
 
 ### db
 You can use the `db` global in a plugin to persist data. Here's a plugin that saves some data:
 
-    function remember(text, message) {
-      const name = message.author.username;
+```js
+function remember(text, message) {
+  const name = message.author.username;
 
-      if (text && text.length > 0) {
-        db.write(name, text);
-        return 'ok, remembered';
-      }
+  if (text && text.length > 0) {
+    db.write(name, text);
+    return 'ok, remembered';
+  }
 
-      if (db.has(name)) {
-        return `i remember: ${db.read(name)}`;
-      }
+  if (db.has(name)) {
+    return `i remember: ${db.read(name)}`;
+  }
 
-      return 'nothing for me to remember!';
-    }
+  return 'nothing for me to remember!';
+}
 
-    commands = { remember };
+commands = { remember };
+```
 
 The keys are prefixed with the plugin name, so you (probably) don't have to worry about collisions. talkbox saves this to `persist.json` in it's directory, so the data persists across restarts.
