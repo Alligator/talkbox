@@ -12,6 +12,7 @@ function debug(message) {
 }
 
 module.exports = {
+  log,
   info,
   debug,
 };

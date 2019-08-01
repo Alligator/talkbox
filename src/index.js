@@ -52,7 +52,14 @@ client.on('message', (rawMessage) => {
 
     const plugin = pw.getPlugin(cmd.commandName);
     if (plugin) {
-      currentOutput = plugin(currentOutput, rawMessage);
+      try {
+        currentOutput = plugin(currentOutput, rawMessage);
+      } catch (e) {
+        rawMessage.channel.send(`command ${cmd.commandName} failed`);
+        logger.log(`error running command ${cmd.commandName} ${e}`);
+        logger.log(e.stack);
+        return;
+      }
     } else {
       rawMessage.channel.send(`unknown command ${cmd.commandName}`);
       return;

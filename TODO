@@ -1,4 +1,3 @@
-- gracefully handle errors in plugins
 - gracefully handle discord.js socket errors
 - make intervals work again
 - run commands by @ing the bot
