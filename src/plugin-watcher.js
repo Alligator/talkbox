@@ -81,15 +81,19 @@ class PluginWatcher {
   }
 
   startIntervals(client) {
-    Object.keys(this.plugins).forEach((key) => {
-      const fn = this.plugins[key];
-      if (fn._interval) {
-        fn(client);
-        fn._intervalId = setInterval(() => {
-          logger.info(`running ${key} at interval`);
+    Object.keys(this.modules).forEach((key) => {
+      const module = this.modules[key];
+      Object.keys(module).forEach((moduleKey) => {
+        const fn = module[moduleKey];
+        if (fn._interval) {
+          logger.info(`starting interval ${moduleKey}`);
           fn(client);
-        }, fn._interval);
-      }
+          fn._intervalId = setInterval(() => {
+            logger.info(`running ${moduleKey} at interval`);
+            fn(client);
+          }, fn._interval);
+        }
+      });
     });
   }
 

@@ -23,7 +23,11 @@ client.on('disconnect', () => {
 });
 
 client.on('message', (rawMessage) => {
-  logger.info(`${rawMessage.guild.name}[${rawMessage.channel.name}] <${rawMessage.author.username}> ${rawMessage.cleanContent}`);
+  if (rawMessage.guild) {
+    logger.info(`${rawMessage.guild.name}[${rawMessage.channel.name}] <${rawMessage.author.username}> ${rawMessage.cleanContent}`);
+  } else {
+    logger.info(`<${rawMessage.author.username}> ${rawMessage.cleanContent}`);
+  }
 
   if (rawMessage.author.bot) {
     return;

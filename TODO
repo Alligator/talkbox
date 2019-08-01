@@ -1,5 +1,5 @@
 - gracefully handle discord.js socket errors
-- make intervals work again
+- stop plugin intervals when reloading
 - run commands by @ing the bot
 - better persistence (sqlite?)
 - lil library for the repl (easy to send messages, plugin management?)
