@@ -10,7 +10,7 @@ try {
 }
 
 function persistStore() {
-  fs.writeFileSync(PATH, JSON.stringify(store));
+  fs.writeFileSync(PATH, JSON.stringify(store, null, 2));
 }
 
 function write(key, value) {

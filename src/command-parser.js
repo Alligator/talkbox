@@ -2,6 +2,17 @@ const STATE_NORMAL = 'STATE_NORMAL';
 const STATE_IN_QUOTE = 'STATE_IN_QUOTE';
 const STATE_IN_SPACE = 'STATE_IN_SPACE';
 
+// parse bash style command lines, e.g.
+//
+//   parseCommands('abc "two words" | def | ghj')
+//
+// results in
+//
+//  [
+//    { commandName: 'abc', args: ['two words'] },
+//    { commandName: 'def', args: [] },
+//    { commandName: 'ghj', args: [] },
+//  ]
 function parseCommands(text) {
   const commands = text.split(/ ?\| ?/);
   return commands.map((commandText) => {
