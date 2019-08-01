@@ -26,11 +26,20 @@ function has(key) {
   return store.hasOwnProperty(key);
 }
 
+function remove(key) {
+  delete store[key];
+  persistStore();
+}
+
 function wrapForPlugin(name) {
+  function wrap(fn) {
+    return (key, ...args) => fn(`${name}_${key}`, ...args);
+  }
   return {
-    write: (key, value) => write(`${name}_${key}`, value),
-    read: (key) => read(`${name}_${key}`),
-    has: (key) => has(`${name}_${key}`),
+    write: wrap(write),
+    read: wrap(read),
+    has: wrap(has),
+    remove: wrap(remove),
   };
 }
 

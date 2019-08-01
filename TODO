@@ -5,4 +5,3 @@
 - API key management
   - does this need to be separate from general persistence?
 - remove plugin if file is deleted
-- db.remove

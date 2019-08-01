@@ -13,4 +13,13 @@ function remember(text, message) {
   return 'nothing for me to remember m8';
 }
 
-commands = { remember };
+function forget(text, message) {
+  const name = message.author.username;
+  if (db.has(name)) {
+    db.remove(name);
+    return 'forgotten!';
+  }
+  return 'nothing to forget';
+}
+
+commands = { remember, forget };
