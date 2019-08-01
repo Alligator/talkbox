@@ -22,23 +22,29 @@ client.on('disconnect', () => {
   pw.stopIntervals();
 });
 
-client.on('message', (rawMessage) => {
-  if (rawMessage.guild) {
-    logger.info(`${rawMessage.guild.name}[${rawMessage.channel.name}] <${rawMessage.author.username}> ${rawMessage.cleanContent}`);
+client.on('message', (message) => {
+  if (message.guild) {
+    logger.info(`${message.guild.name}[${message.channel.name}] <${message.author.username}> ${message.cleanContent}`);
   } else {
-    logger.info(`<${rawMessage.author.username}> ${rawMessage.cleanContent}`);
+    logger.info(`<${message.author.username}> ${message.cleanContent}`);
   }
 
-  if (rawMessage.author.bot) {
+  if (message.author.bot) {
     return;
   }
 
-  if (!rawMessage.content.startsWith(config.leader)) {
+  let messageText;
+  if (message.content.startsWith(config.leader)) {
+    messageText = message.content.slice(1);
+  } else if (message.isMentioned(client.user)) {
+    messageText = message.content
+      .replace(/<@\d+>/, '')
+      .trim();
+  } else {
     return;
   }
 
-  const messageWithoutLeader = rawMessage.content.slice(1);
-  const commands = parseCommands(messageWithoutLeader);
+  const commands = parseCommands(messageText);
 
   let currentOutput = null;
   for (let i = 0; i < commands.length; i++) {
@@ -57,21 +63,21 @@ client.on('message', (rawMessage) => {
     const plugin = pw.getPlugin(cmd.commandName);
     if (plugin) {
       try {
-        currentOutput = plugin(currentOutput, rawMessage);
+        currentOutput = plugin(currentOutput, message);
       } catch (e) {
-        rawMessage.channel.send(`command ${cmd.commandName} failed`);
+        message.channel.send(`command ${cmd.commandName} failed`);
         logger.log(`error running command ${cmd.commandName} ${e}`);
         logger.log(e.stack);
         return;
       }
     } else {
-      rawMessage.channel.send(`unknown command ${cmd.commandName}`);
+      message.channel.send(`unknown command ${cmd.commandName}`);
       return;
     }
   }
 
   if (currentOutput) {
-    rawMessage.channel.send(currentOutput);
+    message.channel.send(currentOutput);
   }
 
 });
