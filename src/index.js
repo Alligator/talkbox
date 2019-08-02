@@ -22,7 +22,7 @@ client.on('disconnect', () => {
   pw.stopIntervals();
 });
 
-client.on('message', (message) => {
+client.on('message', async (message) => {
   if (message.guild) {
     logger.info(`${message.guild.name}[${message.channel.name}] <${message.author.username}> ${message.cleanContent}`);
   } else {
@@ -63,7 +63,7 @@ client.on('message', (message) => {
     const plugin = pw.getPlugin(cmd.commandName);
     if (plugin) {
       try {
-        currentOutput = plugin(currentOutput, message);
+        currentOutput = await plugin(currentOutput, message);
       } catch (e) {
         message.channel.send(`command ${cmd.commandName} failed`);
         logger.log(`error running command ${cmd.commandName} ${e}`);
