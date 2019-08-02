@@ -2,7 +2,7 @@
   "name": "talkbox",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "MIT",
+  "license": "Unlicense",
   "scripts": {
     "start": " node --experimental-modules src/index.js"
   },
