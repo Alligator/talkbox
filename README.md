@@ -64,8 +64,6 @@ The second argument to the plugin is a [discord.js message object](https://disco
 ### interval commands
 You can also create interval commands, which are run by talkbox on a timer. These get passed the discord client object.
 
-*Note that this is currently broken, oops, will be fixed soon!*
-
 ```js
 function heartbeat(client) {
   const owner = client.users.get('1234');
