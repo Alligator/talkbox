@@ -71,6 +71,13 @@ client.on('ready', () => {
     console.log(guilds);
     replServer.displayPrompt();
   });
+
+  replServer.defineCommand('send', function (args) {
+    const sp = args.split(' ');
+    const id = sp[0];
+    const msg = sp.slice(1).join(' ');
+    client.channels.get(id).send(msg);
+  });
 });
 
 client.on('disconnect', () => {
