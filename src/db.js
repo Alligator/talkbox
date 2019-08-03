@@ -4,7 +4,11 @@ const PATH = 'persist.json';
 let store = {};
 
 try {
-  store = JSON.parse(fs.readFileSync(PATH));
+  if (fs.existsSync(PATH)) {
+    store = JSON.parse(fs.readFileSync(PATH));
+  } else {
+    store = {};
+  }
 } catch (e) {
   console.error(e);
 }
