@@ -1,6 +1,5 @@
 const fs = require('fs');
 const vm = require('vm');
-const util = require('util');
 const path = require('path');
 const db = require('./db');
 const logger = require('./logger');

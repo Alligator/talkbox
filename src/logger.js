@@ -1,9 +1,11 @@
+const util = require('util');
+
 function log(message) {
   const timeStamp = new Date().toISOString();
   if (typeof message ==='string') {
     console.log(`${timeStamp} ${message}`);
   } else {
-    console.log(`${timeStamp} ${JSON.stringify(message)}`);
+    console.log(`${timeStamp} ${util.inspect(message)}`);
   }
 }
 
