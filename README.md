@@ -101,3 +101,27 @@ commands = { remember };
 ```
 
 The keys are prefixed with the plugin name, so you (probably) don't have to worry about collisions. talkbox saves this to `persist.json` in it's directory, so the data persists across restarts.
+
+### API calls
+Commands can easily make API calls and the bot supports command functions being async. Here is an example plugin that fetches some data:
+
+```js
+const axios = require('axios');
+
+async function novara() {
+  const response = await axios.get('https://novaramedia.com/api/articles/');
+  const article = response.data.posts[0];
+  return `${article.title} - ${article.permalink}`;
+}
+
+commands = { novara };
+```
+
+### config
+A plugin can read the config by just requiring the config.json file, like so:
+
+```js
+const config = require('../config.json');
+```
+
+The config file is a good place to store API keys, paths, and anything that you don't want to hard-code into a plugin.
