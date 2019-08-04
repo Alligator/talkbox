@@ -1,6 +1,6 @@
 - gracefully handle discord.js socket errors
+- gracefully handle errors in interval commands
 - better persistence (sqlite?)
-- API key management
-  - does this need to be separate from general persistence?
 - remove plugin if file is deleted
 - remove command if it's removed from the file
+- write logs to a file
