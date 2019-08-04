@@ -17,39 +17,31 @@ function persistStore() {
   fs.writeFileSync(PATH, JSON.stringify(store, null, 2));
 }
 
-function write(key, value) {
-  store[key] = value;
-  persistStore();
-}
+function createContext(name) {
+  let base = store[name] || {};
 
-function read(key) {
-  return store[key];
-}
-
-function has(key) {
-  return store.hasOwnProperty(key);
-}
-
-function remove(key) {
-  delete store[key];
-  persistStore();
-}
-
-function wrapForPlugin(name) {
-  function wrap(fn) {
-    return (key, ...args) => fn(`${name}_${key}`, ...args);
-  }
-  return {
-    write: wrap(write),
-    read: wrap(read),
-    has: wrap(has),
-    remove: wrap(remove),
+  const ensureStore = () => {
+    store[name] = base;
   };
+
+  const db = new Proxy(base, {
+    get(obj, key) {
+      return obj[key];
+    },
+    set(obj, key, value) {
+      ensureStore();
+      obj[key] = value;
+      persistStore();
+    },
+    deleteProperty(obj, key) {
+      ensureStore();
+      if (key in obj) {
+        delete obj[key];
+        persistStore();
+      }
+    },
+  });
+  return db;
 }
 
-module.exports = {
-  write,
-  read,
-  has,
-  wrapForPlugin,
-};
+module.exports = { createContext };

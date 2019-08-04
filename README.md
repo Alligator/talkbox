@@ -84,21 +84,31 @@ function remember(text, message) {
   const name = message.author.username;
 
   if (text && text.length > 0) {
-    db.write(name, text);
+    db[name] = text;
     return 'ok, remembered';
   }
 
-  if (db.has(name)) {
-    return `i remember: ${db.read(name)}`;
+  if (name in db) {
+    return `i remember: ${db[name]}`;
   }
 
-  return 'nothing for me to remember!';
+  return 'nothing for me to remember';
 }
 
-commands = { remember };
+function forget(text, message) {
+  const name = message.author.username;
+  if (name in db) {
+    delete db[name]
+    return 'forgotten!';
+  }
+  return 'nothing to forget';
+}
+
+commands = { remember, forget };
+
 ```
 
-The keys are prefixed with the plugin name, so you (probably) don't have to worry about collisions. talkbox saves this to `persist.json` in it's directory, so the data persists across restarts.
+db works like a regular object, except it persists across restarts/reloads. The storage for each plugin is kept separate, so you don't have to worry about key collisions. The data is written to `persist.json`.
 
 ### API calls
 Commands can easily make API calls and the bot supports command functions being async. Here is an example plugin that fetches some data:

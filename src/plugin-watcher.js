@@ -50,9 +50,10 @@ class PluginWatcher {
         setInterval,
         clearInterval,
         require,
-        db: db.wrapForPlugin(path.basename(fileName, '.js')),
+        db: db.createContext(path.basename(fileName, '.js')),
         log: pluginLog(fileName),
         Math,
+        process,
       };
       vm.runInNewContext(file.toString(), sandbox, { displayErrors: true });
       this.plugins[fileName] = Object.assign({}, sandbox);

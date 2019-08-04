@@ -6,9 +6,9 @@ async function weather(text, message) {
   let location = text;
 
   if (location && location.length > 0) {
-    db.write(name, location);
-  } else if (db.has(name)) {
-    location = db.read(name);
+    db[name] = location;
+  } else if (name in db) {
+    location = db[name];
   } else {
     return 'no saved location';
   }
