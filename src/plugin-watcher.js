@@ -52,7 +52,7 @@ class PluginWatcher {
 
   // grab the commands object from a module and register all of the commands
   // found in it
-  regiterPluginsFromModule(module) {
+  registerPluginsFromModule(module) {
     const commands = module.commands;
     if (!commands) {
       return;
