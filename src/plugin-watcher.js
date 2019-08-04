@@ -11,7 +11,9 @@ function pluginLog(fileName) {
 }
 
 class PluginWatcher {
-  constructor() {
+  constructor(client) {
+    this.client = client;
+
     // a plugin is the environment (all of the globals) we get after executing a
     // .js file in the plugins directory.
     this.plugins = {};
@@ -20,8 +22,12 @@ class PluginWatcher {
     // object.
     this.commands = {};
 
+    // interval commands
+    this.intervals = [];
+    this.intervalsRunning = false;
+
     // intervals are used internally to debounce file loading
-    this.intervals = {};
+    this.loadPluginIntervals = {};
 
     // initial load
     const files = fs.readdirSync('plugins');
@@ -51,6 +57,7 @@ class PluginWatcher {
       vm.runInNewContext(file.toString(), sandbox, { displayErrors: true });
       this.plugins[fileName] = Object.assign({}, sandbox);
       this.registerCommandsFromPlugin(fileName, this.plugins[fileName]);
+      this.registerIntervalsFromPlugin(fileName, this.plugins[fileName]);
     } catch (e) {
       logger.info(`failed! ${e}`);
       throw e;
@@ -87,11 +94,11 @@ class PluginWatcher {
   // multiple filesystem operations when saving a file, this stops the plugin
   // loading multiple times when that happens.
   debounceLoadPlugin(fileName) {
-    if (this.intervals[fileName]) {
-      clearInterval(this.intervals[fileName]);
+    if (this.loadPluginIntervals[fileName]) {
+      clearInterval(this.loadPluginIntervals[fileName]);
     }
 
-    this.intervals[fileName] = setTimeout(() => {
+    this.loadPluginIntervals[fileName] = setTimeout(() => {
       this.loadPlugin(fileName);
     }, 500);
   }
@@ -104,33 +111,64 @@ class PluginWatcher {
     });
   }
 
-  startIntervals(client) {
-    Object.keys(this.plugins).forEach((key) => {
-      const plugin = this.plugins[key];
-      Object.keys(plugin).forEach((pluginKey) => {
-        const fn = plugin[pluginKey];
-        if (fn._interval) {
-          logger.info(`starting interval ${pluginKey}`);
-          fn(client);
-          fn._intervalId = setInterval(() => {
-            logger.info(`running ${pluginKey} at interval`);
-            fn(client);
-          }, fn._interval);
+  registerIntervalsFromPlugin(fileName, plugin) {
+    // stop any intervals for this file and remove them from the array
+    this.intervals = this.intervals.filter((interval) => {
+      if (interval.fileName === fileName) {
+        this.stopInterval(interval);
+        return false;
+      }
+      return true;
+    });
+
+    Object.keys(plugin).forEach((pluginKey) => {
+      const func = plugin[pluginKey];
+      if (func._interval) {
+        this.intervals.push({
+          id: null,
+          name: pluginKey,
+          func: func,
+          fileName,
+        });
+        logger.info(`  loaded interval ${pluginKey}`);
+        if (this.intervalsRunning) {
+          this.startInterval(this.intervals[this.intervals.length - 1])
         }
-      });
+      }
     });
   }
 
+  startIntervals() {
+    this.intervals.map(interval => this.startInterval(interval));
+    this.intervalsRunning = true;
+  }
+
+  startInterval(interval) {
+    if (interval.id) {
+      clearInterval(interval.id);
+    }
+
+    logger.info(`started interval ${interval.name}`);
+    interval.func(this.client);
+
+    const id = setInterval(() => {
+      logger.info(`running interval ${interval.name}`);
+      interval.func(this.client);
+    }, interval.func._interval);
+
+    interval.id = id;
+  }
+
   stopIntervals() {
-    Object.keys(this.plugins).forEach((key) => {
-      const plugin = this.plugins[key];
-      Object.keys(plugin).forEach((pluginKey) => {
-        const fn = plugin[pluginKey];
-        if (fn._intervalId) {
-          clearInterval(fn._intervalId);
-        }
-      });
-    });
+    this.intervals.forEach(interval => this.stopInterval(interval));
+    this.intervalsRunning = false;
+  }
+
+  stopInterval(interval) {
+    if (interval.id) {
+      clearInterval(interval.id);
+      logger.info(`stopped interval ${interval.name}`);
+    }
   }
 
   getCommands(name) {

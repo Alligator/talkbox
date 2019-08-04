@@ -1,5 +1,4 @@
 - gracefully handle discord.js socket errors
-- stop plugin intervals when reloading
 - better persistence (sqlite?)
 - API key management
   - does this need to be separate from general persistence?

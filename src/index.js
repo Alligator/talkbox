@@ -7,8 +7,8 @@ const parseCommands = require('./command-parser');
 
 const config = require('../config.json');
 
-let pw = new PluginWatcher();
 const client = new Discord.Client();
+let pw = new PluginWatcher(client);
 
 // run a list of commands, passing the input from each command to the next
 // commands should be the output from parseCommands
@@ -67,7 +67,7 @@ client.on('ready', () => {
 
   replServer.defineCommand('reloadPlugins', function () {
     pw.stopIntervals();
-    pw = new PluginWatcher();
+    pw = new PluginWatcher(client);
     pw.watchFiles();
     pw.startIntervals();
     replServer.displayPrompt();
