@@ -29,7 +29,6 @@ async function runCommands(commands, message) {
     }
 
     const plugins = pw.getPlugins(cmd.commandName);
-    console.log(plugins);
     if (plugins.length === 1) {
       try {
         currentOutput = await plugins[0].func(currentOutput, message);
