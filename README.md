@@ -1,6 +1,16 @@
 # talkbox
 This is a javascript discord bot, designed to be simple and easy to extend.
 
+## table of contents
+- [running it](#running-it)
+- [talking to it](#talking-to-it)
+- [writing plugins](#writing-plugins)
+  - [simple](#simple)
+  - [interval commands](#interval-commands)
+  - [db](#db)
+  - [API calls](#api-calls)
+  - [config](#config)
+
 ## running it
 Create a config.json file that looks like this:
 
@@ -19,24 +29,23 @@ Then run
     npm run start
 
 ## talking to it
-Run a command by saying `,commandname` in a channel the bot is in. Anything after the command name is passed as an argument to the command.
+You can run a command by either using the leader or mentioning talkbox, like so:
+
+![a nice chat](image.png)
 
 You can also pipe commands into one another, for example:
 
-    ,echo hello | uppercase
+![a nicer chat](image2.png)
 
-Will result in
-
-    YOU SAID HELLO
-
-## plugins
+## writing plugins
 A plugin is a .js file in the plugins directory. talkbox monitors this directory and loads anything that's changed. You can add or update plugins at runtime.
 
+### simple
 Here's a simple plugin:
 
 ```js
 function echo(text) {
-  return 'you said ' + text;
+  return `did you say ${text}?`;
 }
 
 commands = { echo };
@@ -51,7 +60,7 @@ Here's a slightly more complex plugin:
 ```js
 function echoLater(text, message) {
   setTimeout(() => {
-    message.channel.send('you said ' + text);
+    message.channel.send(`did you say ${text}?`);
   }, 6000);
   return 'echoing later...';
 }
@@ -62,7 +71,7 @@ commands = { echoLater };
 The second argument to the plugin is a [discord.js message object](https://discord.js.org/#/docs/main/stable/class/Message). From this you can get to the channel the message came from, the author, or the discord client itself. It's useful if you want to send multiple messages like above.
 
 ### interval commands
-You can also create interval commands, which are run by talkbox on a timer. These get passed the discord client object.
+You can also create interval commands, which are run by talkbox on a timer. These get passed the [discord.js client object](https://discord.js.org/#/docs/main/stable/class/Client).
 
 ```js
 function heartbeat(client) {
@@ -111,7 +120,7 @@ commands = { remember, forget };
 db works like a regular object, except it persists across restarts/reloads. The storage for each plugin is kept separate, so you don't have to worry about key collisions. The data is written to `persist.json`.
 
 ### API calls
-Commands can easily make API calls and the bot supports command functions being async. Here is an example plugin that fetches some data:
+Commands can easily make API calls and talkbox supports command functions being async. Here is an example plugin that fetches some data:
 
 ```js
 const axios = require('axios');
