@@ -2,7 +2,6 @@ const Discord = require('discord.js');
 const repl = require('repl');
 
 const PluginWatcher = require('./plugin-watcher');
-const db = require('./db');
 const logger = require('./logger');
 const parseCommands = require('./command-parser');
 
@@ -11,18 +10,21 @@ const config = require('../config.json');
 let pw = new PluginWatcher();
 const client = new Discord.Client();
 
+// run a list of commands, passing the input from each command to the next
+// commands should be the output from parseCommands
+// message is the discord.js message object the commands came from
 async function runCommands(commands, message) {
   let currentOutput = null;
   for (let i = 0; i < commands.length; i++) {
     const cmd = commands[i];
 
     if (currentOutput === null) {
+      // if there's no current output, use the args given to the commands
       currentOutput = cmd.args.join(' ');
     }
 
     if (typeof currentOutput === 'undefined') {
-      // we got undefined somewhere, kill the pipe we're
-      // in a weird state
+      // we got undefined somewhere, kill the pipe we're in a weird state
       break;
     }
 
@@ -47,6 +49,8 @@ client.on('ready', () => {
   pw.startIntervals(client);
   const replServer = repl.start('talkbox> ');
   replServer.context.client = client;
+
+  // add repl commands
   replServer.defineCommand('plugin', async function (cmd) {
     const commands = parseCommands(cmd);
     try {
@@ -98,8 +102,10 @@ client.on('message', async (message) => {
 
   let messageText;
   if (message.content.startsWith(config.leader)) {
+    // message starts with the leader
     messageText = message.content.slice(1);
   } else if (message.isMentioned(client.user)) {
+    // message mentions the bot, remove the mention
     messageText = message.content
       .replace(/<@\d+>/, '')
       .trim();

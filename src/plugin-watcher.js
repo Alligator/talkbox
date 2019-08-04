@@ -50,7 +50,9 @@ class PluginWatcher {
     }
   }
 
-  registerPluginsFromModule(module) {
+  // grab the commands object from a module and register all of the commands
+  // found in it
+  regiterPluginsFromModule(module) {
     const commands = module.commands;
     if (!commands) {
       return;
@@ -61,6 +63,9 @@ class PluginWatcher {
     });
   }
 
+  // debounced version of loadModule. some text editors (such as vim) perform
+  // multiple filesystem operations when saving a file, this stops the plugin
+  // loading multiple times when that happens.
   debouceLoadModule(fileName) {
     if (this.intervals[fileName]) {
       clearInterval(this.intervals[fileName]);

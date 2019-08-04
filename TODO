@@ -1,7 +1,6 @@
 - gracefully handle discord.js socket errors
 - stop plugin intervals when reloading
 - better persistence (sqlite?)
-- lil library for the repl (easy to send messages, plugin management?)
 - API key management
   - does this need to be separate from general persistence?
 - remove plugin if file is deleted
