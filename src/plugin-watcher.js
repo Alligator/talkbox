@@ -59,7 +59,7 @@ class PluginWatcher {
     }
     Object.keys(commands).map((modKey) => {
       logger.info(`  loaded command ${modKey}`);
-      this.plugins[modKey] = module[modKey];
+      this.plugins[modKey] = module.commands[modKey];
     });
   }
 
@@ -110,11 +110,13 @@ class PluginWatcher {
     });
   }
 
-  getPlugin(name) {
-    const plug = this.plugins[name];
-    if (plug) {
-      return plug;
-    }
+  getPlugins(name) {
+    return Object.keys(this.plugins)
+      .filter(pluginName => pluginName.startsWith(name))
+      .map(pluginName => ({
+        name: pluginName,
+        func: this.plugins[pluginName],
+      }));
   }
 }
 

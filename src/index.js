@@ -28,17 +28,21 @@ async function runCommands(commands, message) {
       break;
     }
 
-    const plugin = pw.getPlugin(cmd.commandName);
-    if (plugin) {
+    const plugins = pw.getPlugins(cmd.commandName);
+    console.log(plugins);
+    if (plugins.length === 1) {
       try {
-        currentOutput = await plugin(currentOutput, message);
+        currentOutput = await plugins[0].func(currentOutput, message);
       } catch (e) {
         logger.log(`error running command ${cmd.commandName} ${e}`);
         logger.log(e.stack);
         throw new Error(`command ${cmd.commandName} failed`);
       }
+    } else if (plugins.length > 1) {
+      const names = plugins.map(plug => plug.name);
+      return `did you mean ${names.slice(0, -1).join(', ')} or ${names[names.length-1]}?`;
     } else {
-      throw new Error(`unknown command ${cmd.commandName}`);
+      return `unknown command ${cmd.commandName}`;
     }
   }
   return currentOutput;

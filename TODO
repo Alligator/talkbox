@@ -4,5 +4,4 @@
 - API key management
   - does this need to be separate from general persistence?
 - remove plugin if file is deleted
-- run command if substring matches (e.g. "wea" for "weather")
-- help/list all matching commands
+- remove command if it's removed from the file
