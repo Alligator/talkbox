@@ -33,8 +33,7 @@ async function runCommands(commands, message) {
       try {
         currentOutput = await plugins[0].func(currentOutput, message);
       } catch (e) {
-        logger.log(`error running command ${cmd.commandName} ${e}`);
-        logger.log(e.stack);
+        logger.error(`error running command ${cmd.commandName}\n${e.stack}`);
         throw new Error(`command ${cmd.commandName} failed`);
       }
     } else if (plugins.length > 1) {
@@ -94,9 +93,9 @@ client.on('disconnect', () => {
 
 client.on('message', async (message) => {
   if (message.guild) {
-    logger.info(`${message.guild.name}[${message.channel.name}] <${message.author.username}> ${message.cleanContent}`);
+    logger.log(`${message.guild.name}[${message.channel.name}] <${message.author.username}> ${message.cleanContent}`);
   } else {
-    logger.info(`<${message.author.username}> ${message.cleanContent}`);
+    logger.log(`<${message.author.username}> ${message.cleanContent}`);
   }
 
   if (message.author.bot) {

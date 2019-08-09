@@ -1,6 +1,7 @@
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
+const Discord = require('discord.js');
 const db = require('./db');
 const logger = require('./logger');
 
@@ -54,13 +55,14 @@ class PluginWatcher {
         log: pluginLog(fileName),
         Math,
         process,
+        RichEmbed: Discord.RichEmbed,
       };
       vm.runInNewContext(file.toString(), sandbox, { displayErrors: true });
       this.plugins[fileName] = Object.assign({}, sandbox);
       this.registerCommandsFromPlugin(fileName, this.plugins[fileName]);
       this.registerIntervalsFromPlugin(fileName, this.plugins[fileName]);
     } catch (e) {
-      logger.info(`failed! ${e}`);
+      logger.error(`failed! ${e}`);
       throw e;
     }
   }
@@ -149,12 +151,20 @@ class PluginWatcher {
       clearInterval(interval.id);
     }
 
-    logger.info(`started interval ${interval.name}`);
-    interval.func(this.client);
+    try {
+      interval.func(this.client);
+      logger.info(`started interval ${interval.name}`);
+    } catch(e) {
+      logger.error(`interval ${interval.name} failed\n${e.stack}`);
+    }
 
     const id = setInterval(() => {
       logger.info(`running interval ${interval.name}`);
-      interval.func(this.client);
+      try {
+        interval.func(this.client);
+      } catch(e) {
+        logger.error(`interval ${interval.name} failed\n${e.stack}`);
+      }
     }, interval.func._interval);
 
     interval.id = id;
