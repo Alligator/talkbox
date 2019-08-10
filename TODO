@@ -1,5 +1,4 @@
 - remove plugin if file is deleted
 - remove command if it's removed from the file
 - write logs to a file
-- gracefully handle discord.js socket errors
 - better persistence (sqlite?)
