@@ -1,4 +1,3 @@
-- show typing indicator while plugin is running
 - remove plugin if file is deleted
 - remove command if it's removed from the file
 - write logs to a file

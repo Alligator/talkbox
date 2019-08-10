@@ -115,6 +115,8 @@ client.on('message', async (message) => {
     return;
   }
 
+  message.channel.startTyping();
+
   const commands = parseCommands(messageText);
   try {
     const result = await runCommands(commands, message);
@@ -122,10 +124,10 @@ client.on('message', async (message) => {
       message.channel.send(result);
     }
   } catch (e) {
-    message.channel.send(e.msg);
-    return;
+    logger.error(e.stack);
   }
 
+  message.channel.stopTyping();
 });
 
 pw.watchFiles();
