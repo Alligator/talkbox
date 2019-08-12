@@ -31,11 +31,11 @@ Then run
 ## talking to it
 You can run a command by either using the leader or mentioning talkbox, like so:
 
-![a nice chat](image.png)
+![a nice chat](assets/image.png)
 
 You can also pipe commands into one another, for example:
 
-![a nicer chat](image2.png)
+![a nicer chat](assets/image2.png)
 
 ## writing plugins
 A plugin is a .js file in the plugins directory. talkbox monitors this directory and loads anything that's changed. You can add or update plugins at runtime.
