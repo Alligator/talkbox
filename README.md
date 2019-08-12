@@ -48,12 +48,16 @@ function echo(text) {
   return `did you say ${text}?`;
 }
 
+echo._help = 'echo [text] - echoes the given text';
+
 commands = { echo };
 ```
 
 You register commands by setting the global `commands` object. The key is the name of the command and the value is the function to call.
 
 The function is passed the text that followed the command, and anything returned from the function is sent to the channel the message came from.
+
+The `_help` attribute lets you create a help message for the command. When a user runs `help <your command>`, they will see this message.
 
 Here's a slightly more complex plugin:
 

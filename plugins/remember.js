@@ -12,6 +12,7 @@ function remember(text, message) {
 
   return 'nothing for me to remember m8';
 }
+remember._help = 'remember [text] - if text is given, remember it, otherwise recall remembered text';
 
 function forget(text, message) {
   const name = message.author.username;
@@ -21,5 +22,6 @@ function forget(text, message) {
   }
   return 'nothing to forget';
 }
+forget._help = 'forget - forget remembered text';
 
 commands = { remember, forget };

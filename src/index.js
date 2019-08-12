@@ -28,8 +28,17 @@ async function runCommands(commands, message) {
       break;
     }
 
-    const plugins = pw.getCommands(cmd.commandName);
-    if (plugins.length === 1) {
+    // if the command is "help", use the first arg as the command name and
+    // instead of running it dislay the help
+    const showHelp = cmd.commandName === 'help';
+    const commandName = showHelp ? cmd.args[0] : cmd.commandName;
+    const plugins = pw.getCommands(commandName);
+
+    if (showHelp && plugins.length === 1) {
+      // one command matched in a help command, show the help message
+      currentOutput = plugins[0].help || `no help for command ${plugins[0].name}`;
+    } else if (!showHelp && plugins.length === 1) {
+      // one command matched, run it
       try {
         currentOutput = await plugins[0].func(currentOutput, message);
       } catch (e) {
@@ -37,10 +46,12 @@ async function runCommands(commands, message) {
         throw new Error(`command ${cmd.commandName} failed`);
       }
     } else if (plugins.length > 1) {
+      // multiple commands matched, bail and print all the matched names
       const names = plugins.map(plug => plug.name);
       return `did you mean ${names.slice(0, -1).join(', ')} or ${names[names.length-1]}?`;
     } else {
-      return `unknown command ${cmd.commandName}`;
+      // no commands matched, do nothing and bail
+      return;
     }
   }
   return currentOutput;

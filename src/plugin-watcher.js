@@ -88,6 +88,7 @@ class PluginWatcher {
       this.commands[commandName] = {
         name: commandName,
         func: plugin.commands[commandName],
+        help: plugin.commands[commandName]._help,
         fileName,
       };
     });
