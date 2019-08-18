@@ -108,11 +108,19 @@ class PluginWatcher {
   }
 
   watchFiles() {
-    fs.watch('plugins', (eventType, fileName) => {
+    logger.info('watching plugins directory');
+    this.watcher = fs.watch('plugins', (eventType, fileName) => {
       if (eventType === 'change') {
         this.debounceLoadPlugin(fileName);
       }
     });
+  }
+
+  stopWatchingFiles() {
+    if (this.watcher) {
+      this.watcher.close();
+      logger.info('stopped watching plugins directory');
+    }
   }
 
   registerIntervalsFromPlugin(fileName, plugin) {

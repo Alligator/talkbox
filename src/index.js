@@ -75,11 +75,25 @@ client.on('ready', () => {
     replServer.displayPrompt();
   });
 
-  replServer.defineCommand('reloadPlugins', function () {
-    pw.stopIntervals();
-    pw = new PluginWatcher(client);
-    pw.watchFiles();
-    pw.startIntervals();
+  replServer.defineCommand('plugin', function (args) {
+    switch (args) {
+      case 'reload': {
+        pw.stopIntervals();
+        pw = new PluginWatcher(client);
+        pw.watchFiles();
+        pw.startIntervals();
+        break;
+      }
+      case 'stop': {
+        pw.stopWatchingFiles();
+        break;
+      }
+      case 'start': {
+        pw.watchFiles();
+        break;
+      }
+    }
+
     replServer.displayPrompt();
   });
 
