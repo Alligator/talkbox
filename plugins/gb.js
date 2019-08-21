@@ -1,5 +1,6 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const fuzzyTime = require('../plugins/utils/fuzzy-time');
 
 async function getUpcoming(text, message) {
   const src = await axios.get('https://giantbomb.com');
@@ -9,26 +10,21 @@ async function getUpcoming(text, message) {
   
   let value = '';
 
-  const streams = $('.gb-promo-upcoming').first().find('dl').map(function (i) {
+  $('.gb-promo-upcoming').first().find('dl').map(function (i) {
     const $el = $(this);
-    const title = $el.find('p').first().html();
+    const title = $el.find('p').first().text();
 
     const time = $el.find('.js-time-convert').first().attr('data-date-unix');
-    const date = new Date(time * 1000);
-    const hourDiff = Math.round((date.getTime() - new Date().getTime()) / 1000 / 60 / 60);
-
+    const now = new Date().getTime();
+    const diff = (time * 1000) - now;
+    const hourDiff = Math.floor(diff) / 1000 / 60 / 60;
     let dateString = '';
 
     // if it's soon, show how long
-    if (hourDiff <= 0) {
-      dateString = `now`;
-    } else if (hourDiff <= 24) {
-      dateString = `in ${Math.round(hourDiff)} hour`;
-      if (hourDiff > 1) {
-        dateString += 's';
-      }
+    if (hourDiff <= 24) {
+      dateString = fuzzyTime(diff);
     } else {
-      const dayDiff = Math.round((date.getTime() - new Date().getTime()) / 1000 / 60 / 60 / 24);
+      const dayDiff = Math.round(diff / 1000 / 60 / 60 / 24);
       dateString = `in ${Math.round(dayDiff)} day`;
       if (dayDiff > 1) {
         dateString += 's';
