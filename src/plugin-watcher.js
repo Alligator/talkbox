@@ -62,8 +62,7 @@ class PluginWatcher {
       this.registerCommandsFromPlugin(fileName, this.plugins[fileName]);
       this.registerIntervalsFromPlugin(fileName, this.plugins[fileName]);
     } catch (e) {
-      logger.error(`failed! ${e}`);
-      throw e;
+      logger.error(`failed! ${e} ${e.stack}`);
     }
   }
 
