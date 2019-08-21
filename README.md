@@ -4,6 +4,7 @@ This is a javascript discord bot, designed to be simple and easy to extend.
 ## table of contents
 - [running it](#running-it)
 - [talking to it](#talking-to-it)
+- [REPL](#repl)
 - [writing plugins](#writing-plugins)
   - [simple](#simple)
   - [interval commands](#interval-commands)
@@ -36,6 +37,27 @@ You can run a command by either using the leader or mentioning talkbox, like so:
 You can also pipe commands into one another, for example:
 
 ![a nicer chat](assets/image2.png)
+
+## REPL
+When you run talkbox you'll see a `talkbox>` prompt. This is a REPL you can use to interact with the bot directly in the console.. This is a regular node REPL, so you can run any JavaScript you'd like. You have access to the [discord.js client object](https://discord.js.org/#/docs/main/stable/class/Client) as `client`.
+
+For example, you could send a message to someone using their ID like this:
+
+```
+talkbox> client.users.get('USER_ID_HERE').send('test') 
+```
+
+### commands
+There are some built in REPL commands to manage the bot:
+
+```
+.run command      - run command as though it was a message sent to the bot. The reply is logged to the console
+.plugins reload   - reload all plugins
+.plugins stop     - stop watching the plugins directory (new commands won't be loaded)
+.plugins start    - start watching the plugins directory
+.guilds           - list the guilds the bot is in
+.send id message  - send message to the channel or user with id
+```
 
 ## writing plugins
 A plugin is a .js file in the plugins directory. talkbox monitors this directory and loads anything that's changed. You can add or update plugins at runtime.

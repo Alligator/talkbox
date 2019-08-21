@@ -64,50 +64,65 @@ client.on('ready', () => {
   replServer.context.client = client;
 
   // add repl commands
-  replServer.defineCommand('plugin', async function (cmd) {
-    const commands = parseCommands(cmd);
-    try {
-      const result = await runCommands(commands);
-      console.log(result);
-    } catch (e) {
-      console.log(e);
-    }
-    replServer.displayPrompt();
+  replServer.defineCommand('run', {
+    help: 'run command - run command as though it was a message sent to the bot',
+    action: async function (cmd) {
+      const commands = parseCommands(cmd);
+      try {
+        const result = await runCommands(commands);
+        console.log(result);
+      } catch (e) {
+        console.log(e);
+      }
+      replServer.displayPrompt();
+    },
   });
 
-  replServer.defineCommand('plugin', function (args) {
-    switch (args) {
-      case 'reload': {
-        pw.stopIntervals();
-        pw = new PluginWatcher(client);
-        pw.watchFiles();
-        pw.startIntervals();
-        break;
+  replServer.defineCommand('plugins', {
+    help: 'plugins reload|stop|start - reload all plugins/stop watching plugin directory/start watching plugin directory',
+    action: function (args) {
+      switch (args) {
+        case 'reload': {
+          pw.stopIntervals();
+          pw = new PluginWatcher(client);
+          pw.watchFiles();
+          pw.startIntervals();
+          break;
+        }
+        case 'stop': {
+          pw.stopWatchingFiles();
+          break;
+        }
+        case 'start': {
+          pw.watchFiles();
+          break;
+        }
       }
-      case 'stop': {
-        pw.stopWatchingFiles();
-        break;
-      }
-      case 'start': {
-        pw.watchFiles();
-        break;
-      }
-    }
 
-    replServer.displayPrompt();
+      replServer.displayPrompt();
+    },
   });
 
-  replServer.defineCommand('guilds', function () {
-    const guilds = client.guilds.map(guild => guild.name);
-    console.log(guilds);
-    replServer.displayPrompt();
+  replServer.defineCommand('guilds', {
+    help: 'guilds - list the guilds the bot is in',
+    action: function () {
+      const guilds = client.guilds.map(guild => guild.name);
+      console.log(guilds);
+      replServer.displayPrompt();
+    },
   });
 
-  replServer.defineCommand('send', function (args) {
-    const sp = args.split(' ');
-    const id = sp[0];
-    const msg = sp.slice(1).join(' ');
-    client.channels.get(id).send(msg);
+  replServer.defineCommand('send', {
+    help: 'send id message - send message to the channel or user with id',
+    action: function (args) {
+      const sp = args.split(' ');
+      const id = sp[0];
+      const msg = sp.slice(1).join(' ');
+      const recipient = client.channels.get(id) || client.users.get(id);
+      if (recipient) {
+        recipient.send(msg);
+      }
+    },
   });
 });
 
