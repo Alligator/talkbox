@@ -57,7 +57,7 @@ class PluginWatcher {
         process,
         RichEmbed: Discord.RichEmbed,
       };
-      vm.runInNewContext(file.toString(), sandbox, { displayErrors: true });
+      vm.runInNewContext(file.toString(), sandbox, { displayErrors: true, filename: fileName });
       this.plugins[fileName] = Object.assign({}, sandbox);
       this.registerCommandsFromPlugin(fileName, this.plugins[fileName]);
       this.registerIntervalsFromPlugin(fileName, this.plugins[fileName]);
