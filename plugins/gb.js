@@ -10,7 +10,7 @@ async function getUpcoming(text, message) {
   
   let value = '';
 
-  $('.gb-promo-upcoming').first().find('dl').map(function (i) {
+  $('#wrapper .gb-promo-upcoming').first().find('dl').map(function (i) {
     const $el = $(this);
     const title = $el.find('p').first().text();
 
@@ -22,7 +22,7 @@ async function getUpcoming(text, message) {
 
     // if it's soon, show how long
     if (hourDiff <= 24) {
-      dateString = fuzzyTime(diff);
+      dateString = `in ${fuzzyTime(diff)}`;
     } else {
       const dayDiff = Math.round(diff / 1000 / 60 / 60 / 24);
       dateString = `in ${Math.round(dayDiff)} day`;
