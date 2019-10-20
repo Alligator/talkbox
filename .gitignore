@@ -1,5 +1,6 @@
 *.ignore
 *.swp
 node_modules/
+plugins/*.ignore.js
 config.json
 persist.json
