@@ -39,7 +39,7 @@ You can also pipe commands into one another, for example:
 ![a nicer chat](assets/image2.png)
 
 ## REPL
-When you run talkbox you'll see a `talkbox>` prompt. This is a REPL you can use to interact with the bot directly in the console.. This is a regular node REPL, so you can run any JavaScript you'd like. You have access to the [discord.js client object](https://discord.js.org/#/docs/main/stable/class/Client) as `client`.
+When you run talkbox you'll see a `talkbox>` prompt. This is a REPL you can use to interact with talkbox directly in the console.. This is a regular node REPL, so you can run any JavaScript you'd like. You have access to the [discord.js client object](https://discord.js.org/#/docs/main/stable/class/Client) as `client`.
 
 For example, you could send a message to someone using their ID like this:
 
@@ -48,15 +48,17 @@ talkbox> client.users.get('USER_ID_HERE').send('test')
 ```
 
 ### commands
-There are some built in REPL commands to manage the bot:
+There are some built in REPL commands to manage talkboxt:
 
 ```
-.run command      - run command as though it was a message sent to the bot. The reply is logged to the console
-.plugins reload   - reload all plugins
-.plugins stop     - stop watching the plugins directory (new commands won't be loaded)
-.plugins start    - start watching the plugins directory
-.guilds           - list the guilds the bot is in
-.send id message  - send message to the channel or user with id
+.run command          - run command as though it was a message sent to the bot. The reply is logged to the console
+.plugins reload       - reload all plugins
+.plugins stop         - stop watching the plugins directory (new commands won't be loaded)
+.plugins start        - start watching the plugins directory
+.guilds               - list the guilds the bot is in
+.channels             - list the channels the bot is in
+.send id message      - send message to the channel or user with id
+.send_channel message - send message to the channel with the given name
 ```
 
 ## writing plugins
