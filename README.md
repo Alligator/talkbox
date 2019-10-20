@@ -48,7 +48,7 @@ talkbox> client.users.get('USER_ID_HERE').send('test')
 ```
 
 ### commands
-There are some built in REPL commands to manage talkboxt:
+There are some built in REPL commands to manage talkbox:
 
 ```
 .run command          - run command as though it was a message sent to the bot. The reply is logged to the console
