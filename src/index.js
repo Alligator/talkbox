@@ -106,8 +106,26 @@ client.on('ready', () => {
   replServer.defineCommand('guilds', {
     help: 'guilds - list the guilds the bot is in',
     action: function () {
-      const guilds = client.guilds.map(guild => guild.name);
-      console.log(guilds);
+      const message = client.guilds
+        .map(guild => `${guild.id} - ${guild.name}`)
+        .join('\n');
+      console.log(message);
+      replServer.displayPrompt();
+    },
+  });
+
+  replServer.defineCommand('channels', {
+    help: 'channels - list the channels the bot is in',
+    action: function () {
+      const message = client.guilds
+        .map((guild) => {
+          const channels = guild.channels
+            .map(c => `  ${c.id} - ${c.name}`)
+            .join('\n');
+          return `${guild.id} - ${guild.name}\n${channels}`;
+        })
+        .join('\n');
+      console.log(message);
       replServer.displayPrompt();
     },
   });
@@ -121,6 +139,27 @@ client.on('ready', () => {
       const recipient = client.channels.get(id) || client.users.get(id);
       if (recipient) {
         recipient.send(msg);
+      }
+    },
+  });
+
+  replServer.defineCommand('send_channel', {
+    help: 'send name message - send message to the channel with the given name',
+    action: function (args) {
+      const sp = args.split(' ');
+      const name = sp[0];
+      const msg = sp.slice(1).join(' ');
+      const recipients = client.channels.filter(c => c.name === name);
+      if (recipients.size === 1) {
+        recipients.first().send(msg);
+      } else if (recipients.size > 1) {
+        console.log('multiple channels matched');
+        const channels = recipients
+          .map(c => `  ${c.id} - [${c.guild.name}]${c.name}`)
+          .join('\n');
+        console.log(channels);
+      } else {
+        console.log('no channel found');
       }
     },
   });
