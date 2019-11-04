@@ -8,6 +8,7 @@ This is a javascript discord bot, designed to be simple and easy to extend.
 - [writing plugins](#writing-plugins)
   - [simple](#simple)
   - [interval commands](#interval-commands)
+  - [regex commands](#regex-commands)
   - [db](#db)
   - [API calls](#api-calls)
   - [config](#config)
@@ -112,6 +113,17 @@ heartbeat._interval = 60 * 60 * 1000;
 ```
 
 talbox will register any function with a `_interval` property as an interval command.
+
+### regex commands
+Regex commands run when a message matches a given regex. talkbox will register any function with a `_regex` property as an interval command, the value should be a RegExp object. The array of matches as returned from [RegExp.exec](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec) is passed as the first argument, the message object is the second.
+
+```js
+function respondToTweets(match, message) {
+  return `the id of that tweet is ${match[1]}`;
+}
+
+respondToTweets._regex = new RegExp('(?<!<)https://twitter.com/.+?/status/([0-9]+)(?!>)');
+```
 
 ### db
 You can use the `db` global in a plugin to persist data. Here's a plugin that saves some data:

@@ -191,6 +191,20 @@ client.on('message', async (message) => {
       .replace(/<@\d+>/, '')
       .trim();
   } else {
+    // try regex matches
+    const matches = pw.getRegexMatches(message.content);
+    if (matches.length > 0) {
+      matches.forEach(async (match) => {
+        try {
+          const result = await match.func(match.regex.exec(message.content), message);
+          if (result) {
+            message.channel.send(result);
+          }
+        } catch (e) {
+          logger.error(e.stack);
+        }
+      });
+    } 
     return;
   }
 

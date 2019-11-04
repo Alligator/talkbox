@@ -27,6 +27,9 @@ class PluginWatcher {
     this.intervals = [];
     this.intervalsRunning = false;
 
+    // regex matches
+    this.regexes = [];
+
     // intervals are used internally to debounce file loading
     this.loadPluginIntervals = {};
 
@@ -56,12 +59,14 @@ class PluginWatcher {
         Math,
         process,
         RichEmbed: Discord.RichEmbed,
+        Attachment: Discord.Attachment,
         gc,
       };
       vm.runInNewContext(file.toString(), sandbox, { displayErrors: true, filename: fileName });
       this.plugins[fileName] = Object.assign({}, sandbox);
       this.registerCommandsFromPlugin(fileName, this.plugins[fileName]);
       this.registerIntervalsFromPlugin(fileName, this.plugins[fileName]);
+      this.registerRegexesFromPlugin(fileName, this.plugins[fileName]);
     } catch (e) {
       logger.error(`failed! ${e} ${e.stack}`);
     }
@@ -91,6 +96,25 @@ class PluginWatcher {
         help: plugin.commands[commandName]._help,
         fileName,
       };
+    });
+  }
+
+  registerRegexesFromPlugin(fileName, plugin) {
+    // remove any regexes for this file
+    this.regexes = this.regexes.filter(regex => regex.fileName !== fileName);
+
+    Object.keys(plugin).forEach((pluginKey) => {
+      const func = plugin[pluginKey];
+      if (func._regex) {
+        this.regexes.push({
+          id: null,
+          name: pluginKey,
+          func: func,
+          regex: func._regex,
+          fileName,
+        });
+        logger.info(`  loaded regex ${pluginKey}`);
+      }
     });
   }
 
@@ -195,6 +219,10 @@ class PluginWatcher {
     return Object.keys(this.commands)
       .filter(commandName => commandName.startsWith(name))
       .map(commandName => this.commands[commandName]);
+  }
+
+  getRegexMatches(text) {
+    return this.regexes.filter(r => r.regex.test(text));
   }
 }
 
