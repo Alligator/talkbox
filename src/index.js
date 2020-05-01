@@ -4,6 +4,7 @@ const repl = require('repl');
 const PluginWatcher = require('./plugin-watcher');
 const logger = require('./logger');
 const parseCommands = require('./command-parser');
+const db = require('./db');
 
 const config = require('../config.json');
 
@@ -41,6 +42,7 @@ async function runCommands(commands, message) {
       // one command matched, run it
       try {
         currentOutput = await plugins[0].func(currentOutput, message);
+        db.persistStore();
       } catch (e) {
         logger.error(`error running command ${cmd.commandName}\n${e.stack}`);
         throw new Error(`command ${cmd.commandName} failed`);
@@ -200,6 +202,7 @@ client.on('message', async (message) => {
           if (result) {
             message.channel.send(result);
           }
+          db.persistStore();
         } catch (e) {
           logger.error(e.stack);
         }

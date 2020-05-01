@@ -186,6 +186,7 @@ class PluginWatcher {
 
     try {
       interval.func(this.client);
+      db.persistStore();
       logger.info(`started interval ${interval.name}`);
     } catch(e) {
       logger.error(`interval ${interval.name} failed\n${e.stack}`);
@@ -195,6 +196,7 @@ class PluginWatcher {
       logger.info(`running interval ${interval.name}`);
       try {
         interval.func(this.client);
+        db.persistStore();
       } catch(e) {
         logger.error(`interval ${interval.name} failed\n${e.stack}`);
       }

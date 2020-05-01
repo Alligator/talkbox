@@ -31,17 +31,15 @@ function createContext(name) {
     set(obj, key, value) {
       ensureStore();
       obj[key] = value;
-      persistStore();
     },
     deleteProperty(obj, key) {
       ensureStore();
       if (key in obj) {
         delete obj[key];
-        persistStore();
       }
     },
   });
   return db;
 }
 
-module.exports = { createContext };
+module.exports = { createContext, persistStore };
