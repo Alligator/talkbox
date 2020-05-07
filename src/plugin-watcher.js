@@ -4,6 +4,7 @@ const path = require('path');
 const Discord = require('discord.js');
 const db = require('./db');
 const logger = require('./logger');
+const sql = require('./sql');
 
 function pluginLog(fileName) {
   return function(msg) {
@@ -61,6 +62,7 @@ class PluginWatcher {
         RichEmbed: Discord.RichEmbed,
         Attachment: Discord.Attachment,
         gc,
+        sql,
       };
       vm.runInNewContext(file.toString(), sandbox, { displayErrors: true, filename: fileName });
       this.plugins[fileName] = Object.assign({}, sandbox);

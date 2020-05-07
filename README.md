@@ -9,7 +9,7 @@ This is a javascript discord bot, designed to be simple and easy to extend.
   - [simple](#simple)
   - [interval commands](#interval-commands)
   - [regex commands](#regex-commands)
-  - [db](#db)
+  - [storage](#storage)
   - [API calls](#api-calls)
   - [config](#config)
 
@@ -127,8 +127,14 @@ function respondToTweets(match, message) {
 respondToTweets._regex = new RegExp('https://twitter.com/.+?/status/([0-9]+)');
 ```
 
-### db
-You can use the `db` global in a plugin to persist data. Here's a plugin that saves some data:
+### storage
+There are three ways to persist data in a talkbox plugin.
+
+1. In a variable at the top level of the plugins. Good for caching API responses so you don't hit an API too often.
+2. Using `db`, which looks like a regular object but persists across restarts.
+3. Using `sql`, which gives you access to a sqlite database.
+
+Here's how `db` works:
 
 ```js
 function remember(text, message) {
@@ -159,10 +165,76 @@ commands = { remember, forget };
 
 ```
 
-db works like a regular object, except it persists across restarts/reloads. The storage for each plugin is kept separate, so you don't have to worry about key collisions. The data is written to `persist.json`.
+`db` works like a regular object, except it persists across restarts/reloads. The storage for each plugin is kept separate, so you don't have to worry about key collisions. The data is written to `persist.json`.
+
+`sql` gives you the follow two methods:
+
+```js
+sql.exec(query, params)   - run the given query, returning the number of affected rows
+sql.query(query, params)  - run the given query, returning all of the rows as an array of objects
+```
+
+Here's the same plugin, but using `sql`:
+
+```js
+function ensureDb() {
+  sql.exec(`
+    CREATE TABLE IF NOT EXISTS remember(
+      name    TEXT
+    , message TEXT
+    )
+  `);
+}
+
+function remember(text, message) {
+  ensureDb();
+  const name = message.author.username;
+
+  if (text && text.length > 0) {
+    sql.exec('DELETE FROM remember WHERE name = ?', name);
+
+    sql.exec(`
+      INSERT INTO remember(name, message)
+      VALUES (?, ?)
+    `, name, text);
+
+    return 'ok, remembered';
+  }
+
+  const memories = sql.query(`
+    SELECT message
+    FROM remember
+    WHERE name = :name
+  `, { name });
+
+  if (memories.length > 0) {
+    return `i remember ${memories[0].message}`;
+  }
+
+  return 'nothing for me to remember';
+}
+
+function forget(text, message) {
+  ensureDb();
+  const name = message.author.username;
+
+  const deleted = sql.exec('DELETE FROM remember WHERE name = ?', name);
+  log(JSON.stringify(deleted));
+
+  if (deleted.changes > 0) {
+    return 'forgotten';
+  }
+
+  return 'nothing to forget';
+}
+
+commands = { remember, forget };
+```
+
+These queries go to `better-sqlite3`, so parameters can be bound in all the ways shown in [the documentation](https://github.com/JoshuaWise/better-sqlite3/blob/master/docs/api.md#binding-parameters).
 
 ### API calls
-Commands can easily make API calls and talkbox supports command functions being async. Here is an example plugin that fetches some data:
+Plugins can easily make API calls and talkbox supports command functions being async. Here is an example plugin that fetches some data:
 
 ```js
 const axios = require('axios');

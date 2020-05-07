@@ -173,11 +173,7 @@ client.on('disconnect', () => {
 });
 
 client.on('message', async (message) => {
-  if (message.guild) {
-    logger.log(`${message.guild.name}[${message.channel.name}] <${message.author.username}> ${message.cleanContent}`);
-  } else {
-    logger.log(`<${message.author.username}> ${message.cleanContent}`);
-  }
+  logger.logMessage(message);
 
   if (message.author.bot) {
     return;
