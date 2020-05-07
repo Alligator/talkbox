@@ -61,6 +61,7 @@ class PluginWatcher {
         process,
         RichEmbed: Discord.RichEmbed,
         Attachment: Discord.Attachment,
+        Buffer,
         gc,
         sql,
       };
@@ -220,6 +221,15 @@ class PluginWatcher {
   }
 
   getCommands(name) {
+    // check for an exact match
+    const exactMatches = Object.keys(this.commands)
+      .filter(commandName => commandName === name);
+
+    if (exactMatches.length === 1) {
+      return exactMatches
+        .map(commandName => this.commands[commandName]);
+    }
+
     return Object.keys(this.commands)
       .filter(commandName => commandName.startsWith(name))
       .map(commandName => this.commands[commandName]);
