@@ -222,9 +222,7 @@ client.on('message', async (message) => {
   message.channel.stopTyping();
 });
 
-client.on('reconnecting', () => logger.info('attempting to reconnect to discord'));
-client.on('resume', () => logger.info('reconnected'));
-client.on('disconnect', () => logger.error('disconnected from discord'));
+client.on('disconnect', (evt) => logger.error(`disconnected from discord: ${evt}`));
 client.on('error', e => logger.error(e.message));
 
 pw.watchFiles();
