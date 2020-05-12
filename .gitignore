@@ -1,5 +1,6 @@
 *.ignore
 *.swp
+*.db
 node_modules/
 plugins/*.ignore.js
 config.json
