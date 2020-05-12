@@ -115,7 +115,7 @@ heartbeat._interval = 60 * 60 * 1000;
 talbox will register any function with a `_interval` property as an interval command.
 
 ### regex commands
-Regex commands run when a message matches a given regex. talkbox will register any function with a `_regex` property as an regex command. The value should be a RegExp object.
+Regex commands run when a message matches a given regex. talkbox will register any function with a `_regex` property as a regex command. The value should be a RegExp object.
 
 The array of matches as returned from [RegExp.exec](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec) is passed as the first argument, the message object is the second.
 
