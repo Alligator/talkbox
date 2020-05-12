@@ -37,6 +37,7 @@ class PluginWatcher {
     // initial load
     const files = fs.readdirSync('plugins');
     files.map((file) => {
+      logger.info(`loading ${file}`);
       this.loadPlugin(file);
     });
   }
@@ -46,7 +47,7 @@ class PluginWatcher {
       return;
     }
 
-    logger.info(`loading ${fileName}`);
+    logger.info(`  loading ${fileName}`);
 
     try {
       const file = fs.readFileSync(`plugins/${fileName}`);
@@ -75,9 +76,7 @@ class PluginWatcher {
     }
   }
 
-  // grab the commands object from a plugin and register all of the commands
-  // found in it
-  registerCommandsFromPlugin(fileName, plugin) {
+  unregisterCommandsFromFile(fileName) {
     // remove any commands that were previously registered against this filename
     Object.keys(this.commands).forEach((commandName) => {
       if (this.commands[commandName].fileName === fileName) {
@@ -85,7 +84,11 @@ class PluginWatcher {
         logger.info(`  unloaded command ${commandName}`);
       }
     });
+  }
 
+  // grab the commands object from a plugin and register all of the commands
+  // found in it
+  registerCommandsFromPlugin(fileName, plugin) {
     const commands = plugin.commands;
     if (!commands) {
       return;
@@ -121,25 +124,29 @@ class PluginWatcher {
     });
   }
 
-  // debounced version of loadPlugin. some text editors (such as vim) perform
-  // multiple filesystem operations when saving a file, this stops the plugin
-  // loading multiple times when that happens.
-  debounceLoadPlugin(fileName) {
+  // debounced, since we can get multiple events per file.
+  // wait until they stop and then check if the file still exists.
+  handleFileChange(fileName) {
     if (this.loadPluginIntervals[fileName]) {
       clearInterval(this.loadPluginIntervals[fileName]);
     }
 
     this.loadPluginIntervals[fileName] = setTimeout(() => {
-      this.loadPlugin(fileName);
+      logger.info(`file ${fileName} changed`);
+      // always clear the comannds
+      this.unregisterCommandsFromFile(fileName);
+
+      // register new commands if the file is still there
+      if (fs.existsSync(`plugins/${fileName}`)) {
+        this.loadPlugin(fileName);
+      }
     }, 500);
   }
 
   watchFiles() {
     logger.info('watching plugins directory');
     this.watcher = fs.watch('plugins', (eventType, fileName) => {
-      if (eventType === 'change') {
-        this.debounceLoadPlugin(fileName);
-      }
+      this.handleFileChange(fileName);
     });
   }
 
@@ -241,3 +248,4 @@ class PluginWatcher {
 }
 
 module.exports = PluginWatcher;
+
