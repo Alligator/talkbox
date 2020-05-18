@@ -1,3 +1,5 @@
+const assert = require('assert');
+
 const STATE_NORMAL = 'STATE_NORMAL';
 const STATE_IN_QUOTE = 'STATE_IN_QUOTE';
 const STATE_IN_SPACE = 'STATE_IN_SPACE';
@@ -15,6 +17,7 @@ const STATE_IN_SPACE = 'STATE_IN_SPACE';
 //  ]
 function parseCommands(text) {
   const commands = text.split(/ ?\| ?/);
+
   return commands.map((commandText) => {
     const firstSpaceIdx = commandText.indexOf(' ');
 
@@ -35,6 +38,7 @@ function parseCommands(text) {
     const result = {
       commandName,
       args: [],
+      rawArgs: rest,
     };
 
     // start in the space state to handle starting with a quote
@@ -91,6 +95,44 @@ function parseCommands(text) {
 
     return result;
   });
+}
+
+if (require.main === module) {
+  assert.deepStrictEqual(
+    parseCommands('simple example'),
+    [
+      { commandName: 'simple', args: ['example'], rawArgs: 'example' },
+    ],
+  );
+
+  assert.deepStrictEqual(
+    parseCommands('simple example | with | pipes'),
+    [
+      { commandName: 'simple', args: ['example'], rawArgs: 'example' },
+      { commandName: 'with', args: [] },
+      { commandName: 'pipes', args: [] },
+    ]
+  );
+
+  assert.deepStrictEqual(
+    parseCommands('example | with pipes | with arguments'),
+    [
+      { commandName: 'example', args: [] },
+      { commandName: 'with', args: ['pipes'], rawArgs: 'pipes' },
+      { commandName: 'with', args: ['arguments'], rawArgs: 'arguments' },
+    ]
+  );
+
+  assert.deepStrictEqual(
+    parseCommands('quoting "arg one" two three'),
+    [
+      {
+        commandName: 'quoting',
+        args: ['arg one', 'two', 'three'],
+        rawArgs: '"arg one" two three',
+      },
+    ]
+  );
 }
 
 module.exports = parseCommands;
