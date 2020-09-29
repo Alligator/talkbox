@@ -222,6 +222,14 @@ client.on('message', async (message) => {
   message.channel.stopTyping();
 });
 
+client.on('messageUpdate', (oldMessage, newMessage) => {
+  logger.updateMessage(newMessage);
+});
+
+client.on('messageDelete', (message) => {
+  logger.deleteMessage(message);
+});
+
 client.on('disconnect', (evt) => logger.error(`disconnected from discord: ${evt}`));
 client.on('error', e => logger.error(e.message));
 

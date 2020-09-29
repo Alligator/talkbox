@@ -44,6 +44,26 @@ function logMessage(message) {
   }
 }
 
+function updateMessage(message) {
+  if (message.guild) {
+    log(`${message.guild.name}[${message.channel.name}] <${message.author.username}> ${message.cleanContent} (edit)`);
+  } else {
+    log(`<${message.author.username}> ${message.cleanContent}`);
+  }
+  db.prepare(`
+    UPDATE logs
+    SET content = ?
+    WHERE messageId = ?
+  `).run(message.cleanContent, message.id);
+}
+
+function deleteMessage(message) {
+  db.prepare(`
+    DELETE FROM logs
+    WHERE messageId = ?
+  `).run(message.id);
+}
+
 function info(message) {
   log(message);
 }
@@ -57,4 +77,6 @@ module.exports = {
   info,
   error,
   logMessage,
+  updateMessage,
+  deleteMessage,
 };
