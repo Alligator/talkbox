@@ -36,19 +36,16 @@ class PluginWatcher {
 
     // initial load
     const files = fs.readdirSync('plugins');
-    files.map((file) => {
-      logger.info(`loading ${file}`);
-      this.loadPlugin(file);
+    files.map((fileName) => {
+      if (!fileName.endsWith('.js')) {
+        return;
+      }
+      logger.info(`loading ${fileName}`);
+      this.loadPlugin(fileName);
     });
   }
 
   loadPlugin(fileName) {
-    if (!fileName.endsWith('.js')) {
-      return;
-    }
-
-    logger.info(`  loading ${fileName}`);
-
     try {
       const file = fs.readFileSync(`plugins/${fileName}`);
       const sandbox = {
@@ -127,6 +124,10 @@ class PluginWatcher {
   // debounced, since we can get multiple events per file.
   // wait until they stop and then check if the file still exists.
   handleFileChange(fileName) {
+    if (!fileName.endsWith('.js')) {
+      return;
+    }
+
     if (this.loadPluginIntervals[fileName]) {
       clearInterval(this.loadPluginIntervals[fileName]);
     }
