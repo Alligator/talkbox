@@ -14,12 +14,10 @@ async function weather(text, message) {
   }
 
   const img = await jsweather.getWeather(location, config.bing_key, config.dark_sky_key);
-  message.channel.send({
-    files: [{
-      attachment: img,
-      name: 'weather.gif',
-    }],
-  });
+  return {
+    data: img,
+    ext: 'gif',
+  };
 }
 
 commands = { weather };
