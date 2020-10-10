@@ -110,11 +110,13 @@ function calc(txt) {
   }
 
   if (stack.length === 1) {
-    return stack[0];
+    return stack[0].toString();
   } else {
     log(stack);
     return 'uhh something went wrong';
   }
 }
+
+calc._help = 'calculator';
 
 commands = { calc };
