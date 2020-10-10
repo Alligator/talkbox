@@ -7,6 +7,7 @@ function memory() {
     .join('\n');
   return 'memory usage:\n```' + new Date().toISOString() + '\n' + msg + '```';
 }
+memory._help = 'show memory usage';
 
 function garbage(text, message) {
   if (message.author.id !== config.owner_id) {
@@ -19,5 +20,6 @@ function garbage(text, message) {
     return 'garbage collector not exposed';
   }
 }
+garbage._help = 'manually run the gc';
 
 commands = { memory, gc: garbage };
