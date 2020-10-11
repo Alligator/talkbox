@@ -78,14 +78,37 @@ async function runCommands(commands, message) {
     const cmd = commands[i];
 
     // if the command is "help", use the first arg as the command name and
-    // instead of running it dislay the help
+    // instead of running it display the help
     const showHelp = cmd.commandName === 'help';
     const commandName = showHelp ? cmd.args[0] : cmd.commandName;
     const plugins = pw.getCommands(commandName);
 
-    if (showHelp && plugins.length === 1) {
-      // one command matched in a help command, show the help message
-      return plugins[0].help || `no help for command ${plugins[0].name}`;
+    if (showHelp) {
+      if (plugins.length === 1) {
+        // one command matched in a help command, show the help message
+        const embed = new Discord.RichEmbed();
+        embed.addField(plugins[0].name, plugins[0].help || 'no help available');
+        message.channel.send(embed);
+        return;
+      }
+
+      if (!commandName) {
+        const embed = new Discord.RichEmbed();
+        const commandNames = Object.keys(pw.commands)
+          .sort((a, b) => a.localeCompare(b))
+        let embeds = ['', '', ''];
+        for (let i = 0; i < commandNames.length; i++) {
+          const embedIndex = Math.floor((i/commandNames.length) * 3);
+          embeds[embedIndex] += `\n${commandNames[i]}`;
+        }
+
+        embeds.forEach(e => embed.addField('\u200B', e, true));
+        embed.setTitle('available commands');
+        message.channel.send(embed);
+        return;
+      }
+
+      return `unknown command ${cmd.commandName}`;
     } else if (!showHelp && plugins.length === 1) {
       logger.info(`running command ${cmd.commandName}`);
 
@@ -105,7 +128,7 @@ async function runCommands(commands, message) {
         if (typeof result === 'string') {
           // text output
           currentOutput = result;
-        } else {
+        } else if (result) {
           // data output, check if the type is 'compose'
           if (result.type === 'compose') {
             // if it is, add a new layer with this composition function
@@ -314,12 +337,12 @@ client.on('message', async (message) => {
   const commands = parseCommands(messageText);
   try {
     const result = await runCommands(commands, message);
-    if (result.data && result.data.ext) {
+    if (result && result.data && result.data.ext) {
       const attachment = new Discord.Attachment(result.data.data, `${message.id}.${result.data.ext}`);
       message.channel.send(attachment);
-    } else if (result.text) {
+    } else if (result && result.text) {
       message.channel.send(result.text);
-    } else if (typeof result === 'string') {
+    } else if (result && typeof result === 'string') {
       message.channel.send(result);
     }
   } catch (e) {
