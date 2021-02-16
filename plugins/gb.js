@@ -22,7 +22,8 @@ async function getUpcoming(text, message) {
 
     // if it's soon, show how long
     if (hourDiff <= 24) {
-      dateString = `in ${fuzzyTime(diff)}`;
+      const fuzzy = fuzzyTime(diff);
+      dateString = fuzzy === 'now' ? fuzzy : `in ${fuzzy}`;
     } else {
       const dayDiff = Math.round(diff / 1000 / 60 / 60 / 24);
       dateString = `in ${Math.round(dayDiff)} day`;
@@ -34,8 +35,9 @@ async function getUpcoming(text, message) {
     value += `**${title}** ${dateString}\n`;
   });
 
-  embed.addField('Giant Bomb Upcoming', value);
+  embed.addField('Giant Bomb Upcoming', value || 'apparently nothing');
   message.channel.send(embed);
 }
+getUpcoming._help = 'gb - get upcoming giantbomb stuff';
 
 commands = { giantbomb: getUpcoming };
