@@ -1,5 +1,10 @@
 // the order of this list is the precedence
-const validOperators = ['|', '^', '&', '+', '-', '%', '/', '*'];
+const validOperators = [
+  // spaced are lower precedence
+  ' | ', ' ^ ', ' & ', ' + ', ' - ', ' % ', ' / ', ' * ',
+  // than non-spaced
+  '|', '^', '&', '+', '-', '%', '/', '*',
+];
 
 function precedence(operator) {
   return validOperators.indexOf(operator);
@@ -72,7 +77,7 @@ function evaluate(tokens) {
 
     const arg1 = stack.pop();
     const arg2 = stack.pop();
-    switch (token) {
+    switch (token.trim()) {
       case '|': stack.push(arg2 | arg1); break;
       case '^': stack.push(arg2 ^ arg1); break;
       case '&': stack.push(arg2 & arg1); break;
@@ -88,22 +93,45 @@ function evaluate(tokens) {
 }
 
 function tokenize(string) {
-  const allOps = validOperators.join('');
-  // very lazy, just add spaces around every word and operator
-  return string
-    .replace(/\)/g, ' ) ')
-    .replace(/\(/g, ' ( ')
-    .trim()
-    .split(/ +/);
+  const rules = [
+    /^-?[0-9]+(\.[0-9]+)?/,
+    /^ [+\-*\/] /,  // spaced
+    /^[+\-*\/]/,    // non-spaced
+  ];
+
+  const tokens = [];
+  let idx = 0;
+  while (idx < string.length) {
+    let matched = false;
+    for (let i = 0; i < rules.length; i++) {
+      const m = rules[i].exec(string.substring(idx));
+      if (m) {
+        matched = true;
+        tokens.push(m[0]);
+        idx += m[0].length
+        break;
+      }
+    }
+
+    if (!matched) {
+      return null;
+    }
+  }
+
+  return tokens;
 }
 
 function calc(txt) {
   const tokens = tokenize(txt);
+  if (tokens === null) {
+    return 'uhh something went wrong';
+  }
+
   let stack = [];
-  log(`evaluating ${tokens}`);
+  log(`evaluating ${JSON.stringify(tokens)}`);
   try {
     const shunted = shunt(tokens);
-    log(`shunted: ${shunted}`);
+    log(`shunted: ${JSON.stringify(shunted)}`);
     stack = evaluate(shunted);
   } catch (e) {
     return e.message;
@@ -120,3 +148,15 @@ function calc(txt) {
 calc._help = 'calculator';
 
 commands = { calc };
+
+if (!require.main.filename.endsWith('index.js')) {
+  console.log('--------------------');
+  const assert = require('assert');
+  log = console.log;
+
+  assert.equal(calc('1 + 2'), 3);
+  assert.equal(calc('1+2'), 3);
+  assert.equal(calc('1 + 2 * 3'), 7);
+  assert.equal(calc('2 * 3 + 1'), 7);
+  assert.equal(calc('2 * 3 + 1'), 7);
+}
