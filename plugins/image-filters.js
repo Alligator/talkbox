@@ -160,81 +160,10 @@ function blend(text, message) {
   };
 }
 
-async function gun(text, message, currentOutput) {
-  let inputImg;
-  if (currentOutput.data) {
-    inputImg = currentOutput.data.data;
-  } else {
-    inputImg = await getMostRecentImage(message);
-    if (typeof inputImg === 'string') {
-      // error message
-      return inputImg;
-    }
-  }
-
-  const guns = fs.readdirSync('plugins/guns')
-    .filter(f => !f.startsWith('framed') && f.endsWith('.png'));
-  const gunFile = guns[Math.floor(Math.random() * guns.length)];
-  const gunData = fs.readFileSync(`plugins/guns/${gunFile}`);
-  const gun = sharp(gunData);
-  const gunMeta = await gun.metadata();
-  const gunRatio = gunMeta.width / gunMeta.height;
-
-  const img = sharp(inputImg);
-  const imgMeta = await img.metadata();
-
-  let gunBuf;
-  if (gunFile.startsWith('framed-')) {
-    // const resizedBuf = await gun.resize({
-    //   height: imgMeta.height,
-    //   fit: 'inside',
-    // }).toBuffer();
-    //
-    // const resized = sharp(resizedBuf);
-    // const meta = await resized.metadata();
-    //
-    // log(Math.abs(Math.floor((meta.width - imgMeta.width) / 2)));
-    // log(imgMeta.width);
-    // log(imgMeta.height);
-    //
-    // gunBuf = await resized.extract({
-    //   top: 0,
-    //   left: Math.floor((meta.width > imgMeta.width ? meta.width - imgMeta.width : imgMeta.width - meta.width) / 2),
-    //   width: imgMeta.width,
-    //   height: imgMeta.height,
-    // }).toBuffer();
-  } else {
-    let size = Math.floor(Math.min(imgMeta.width / 3 , imgMeta.height / 3));
-    size += Math.floor((size * gunRatio) / 3);
-
-    gunBuf = await gun
-      .resize({
-        width: size,
-        height: size,
-        fit: 'inside',
-        kernel: 'nearest',
-      })
-      .toBuffer();
-  }
-
-  const result = await img
-    .composite([{
-      input: gunBuf,
-      gravity: gunFile.startsWith('centre-') || gunFile.startsWith('framed-') ? 'south' : 'southeast',
-    }])
-    .toFormat('png')
-    .toBuffer();
-
-  return {
-    data: result,
-    ext: 'png',
-  };
-}
-
 img._help = 'img command [args...] manipulate an image. possible commands:\n```' +
   Object.keys(imgCommands)
   .map(cmd => `${cmd} ${(imgCommands[cmd].args || []).map(x => x.slice(1))}`)
   .join('\n')
   + '```';
 
-commands = { img, overlay, gun, blend };
+commands = { img, overlay, blend };

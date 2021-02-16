@@ -13,6 +13,11 @@
 # curl https://cdn.discordapp.com/attachments/279056857287491585/761689145709297725/dog1.png > quake2.png
 # curl -O https://cdn.discordapp.com/attachments/279056857287491585/761689528830263327/star_trek_voyager_elite_force_infinity_modulator_otherwise_known_as_IMOD.png 
 # curl -O https://cdn.discordapp.com/attachments/279056857287491585/761693594502430730/doom_trere.png
-curl https://cdn.discordapp.com/attachments/279056857287491585/762741700795826196/pistol.png > centre-wolf-pistol.png
-curl https://cdn.discordapp.com/attachments/279056857287491585/762741702347325520/chaingun.png > centre-wolf-bigmg.png
-curl https://cdn.discordapp.com/attachments/279056857287491585/762741703726727208/mg.png > centre-wolf-mg.png
+# curl https://cdn.discordapp.com/attachments/279056857287491585/762741700795826196/pistol.png > centre-wolf-pistol.png
+# curl https://cdn.discordapp.com/attachments/279056857287491585/762741702347325520/chaingun.png > centre-wolf-bigmg.png
+# curl https://cdn.discordapp.com/attachments/279056857287491585/762741703726727208/mg.png > centre-wolf-mg.png
+curl https://cdn.discordapp.com/attachments/279056857287491585/764817448301232138/q1shottedgun.png > centre-quake-shotgun.png
+curl https://cdn.discordapp.com/attachments/279056857287491585/764817456484974612/q1nailedguntrentreznornineinchnailo.png > centre-quake-nailgun.png
+curl https://cdn.discordapp.com/attachments/279056857287491585/764817465183567892/q1rockinglauncherasseeninteamfortress2.png > centre-quake-rocket.png
+curl https://cdn.discordapp.com/attachments/279056857287491585/764817473311604736/q1threecylinders.png > centre-quake-n2ilgun.png
+curl https://cdn.discordapp.com/attachments/279056857287491585/764817480837234708/q1spikeyboy.png > centre-quake-lightning.png
