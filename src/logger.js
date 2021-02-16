@@ -15,6 +15,10 @@ function ensure(db) {
     , content     TEXT
     )
   `).run();
+
+  db.prepare(`
+    CREATE INDEX IF NOT EXISTS ix_logs_authorId ON logs(authorId);
+  `).run();
 }
 
 const db = sqlite('logs.db');
