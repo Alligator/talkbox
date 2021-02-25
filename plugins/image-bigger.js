@@ -2,8 +2,18 @@ const sharp = require('sharp');
 const axios = require('axios');
 const getMostRecentImage = require('../plugins/utils/most-recent-image');
 
-async function bigger(text, message) {
-  const img = await getMostRecentImage(message);
+async function bigger(text, message, currentOutput) {
+  let img;
+  if (currentOutput.data) {
+    img = currentOutput.data.data;
+  } else {
+    img = await getMostRecentImage(message);
+    if (typeof img === 'string') {
+      // error message
+      return img;
+    }
+  }
+
   const s = sharp(img);
   const meta = await s.metadata();
 
@@ -25,7 +35,7 @@ async function bigger(text, message) {
     .toFormat('png')
     .toBuffer();
 
-  message.channel.send(new Attachment(result, 'wide.png'));
+  return { data: result, ext: 'png' };
 }
 bigger._help = 'make the last image Bigger';
 
