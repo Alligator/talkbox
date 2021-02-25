@@ -67,72 +67,86 @@ function createTextGenerator(font, lineHeight, postProcess) {
 }
 
 function vcrNoise(ctx) {
+  log('vcr start');
   const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
   const newImageData = ctx.createImageData(ctx.canvas.width, ctx.canvas.height);
+  const buf32 = new Uint32Array(imageData.data.buffer);
+  const newBuf32 = new Uint32Array(newImageData.data.buffer);
 
-  const idxForCoords = (x, y) => y * (imageData.width * 4) + x * 4;
+  // const idxForCoords = (x, y) => y * (imageData.width * 4) + x * 4;
+  const satMul8 = ((x, y) => {
+    const res = (x * y);
+    const hi = res >> 8;
+    if (hi > 0) return 0xff;
+    return res;
+  });
 
+  const w = imageData.width;
+  const h = imageData.height;
   const r = Math.random();
 
-  for (let y = 0; y < imageData.height; y++) {
-    for (let x = 0; x < imageData.width; x++) {
-      let offsetX = x;
-
-      for (let i = 0; i < 0.71; i += 0.1313) {
-        const o = Math.sin(1 - Math.tan(y * 0.8 * i + r));
-        offsetX += Math.floor(o / 2);
-      }
-
-      const brightnessOffset = 1 - Math.sin(y / 0.9) / 7;
-
-      const offsetR = 2.5;
-      const offsetG = 2.5;
-
-      const rIdx = idxForCoords(Math.round(offsetX + offsetR), y);
-      const gIdx = idxForCoords(Math.round(offsetX - offsetG), y);
-
-      const idx = idxForCoords(x, y);
-      const offsetIdx = idxForCoords(offsetX, y);
-
-      newImageData.data[idx]     = imageData.data[rIdx] * brightnessOffset;
-      newImageData.data[idx + 1] = imageData.data[gIdx + 1] * brightnessOffset;
-      newImageData.data[idx + 2] = imageData.data[offsetIdx + 2] * brightnessOffset;
-      newImageData.data[idx + 3] = imageData.data[offsetIdx + 3] * brightnessOffset;
-
-    }
-  }
-
   // 3x3 gaussian blur
-  for (let y = 0; y < imageData.height; y++) {
-    for (let x = 0; x < imageData.width; x++) {
-      const pixels = [
-        [idxForCoords(x - 1, y), 0.118318],
-        [idxForCoords(x - 1, y + 1), 0.0947416],
-        [idxForCoords(x - 1, y - 1), 0.0947416],
+  for (let i = 0; i < buf32.length; i++) {
+    const pixels = [
+      [i - 1, 0.118318],
+      [i + w - 1, 0.0947416],
+      [i - w - 1, 0.0947416],
 
-        [idxForCoords(x + 1, y), 0.118318],
-        [idxForCoords(x + 1, y + 1), 0.0947416], 
-        [idxForCoords(x + 1, y - 1), 0.0947416],  
+      [i + 1, 0.118318],
+      [i + w + 1, 0.0947416], 
+      [i - w + 1, 0.0947416],  
 
-        [idxForCoords(x, y + 1), 0.118318],
-        [idxForCoords(x, y - 1), 0.118318],
-        [idxForCoords(x, y), 0.147761],
-      ];
+      [i + w, 0.118318],
+      [i - w, 0.118318],
+      [i, 0.147761],
+    ];
 
-      const rSum = pixels.reduce((acc, [idx, weight]) => acc + newImageData.data[idx] * weight, 0);
-      const gSum = pixels.reduce((acc, [idx, weight]) => acc + newImageData.data[idx + 1] * weight, 0);
-      const bSum = pixels.reduce((acc, [idx, weight]) => acc + newImageData.data[idx + 2] * weight, 0);
-      const aSum = pixels.reduce((acc, [idx, weight]) => acc + newImageData.data[idx + 3] * weight, 0);
+    let rSum = 0;
+    let gSum = 0;
+    let bSum = 0;
+    let aSum = 0;
 
-      const idx = idxForCoords(x, y);
-
-      newImageData.data[idx] = rSum;
-      newImageData.data[idx + 1] = gSum;
-      newImageData.data[idx + 2] = bSum;
-      newImageData.data[idx + 3] = aSum;
+    for (let p = 0; p < pixels.length; p++) {
+      const [idx, weight] = pixels[p];
+      rSum += (newBuf32[idx] & 0xff) * weight;
+      gSum += (newBuf32[idx] >> 8 & 0xff) * weight;
+      bSum += (newBuf32[idx] >> 16 & 0xff) * weight;
+      aSum += (newBuf32[idx] >> 24 & 0xff) * weight;
     }
+
+    newBuf32[i] = 
+      aSum << 24
+    | bSum << 16
+    | gSum << 8
+    | rSum;
   }
 
+  for (let i = 0; i < buf32.length; i++) {
+    const y = Math.floor(i / w);
+    const x = i - y;
+    let offsetX = 0;
+
+    const o = Math.sin(1 - Math.tan(y * 0.1 + r));
+    offsetX += Math.floor(o);
+
+    const brightnessOffset = 1 - Math.sin(y / 0.7) / 7;
+
+    const offsetR = 2;
+    const offsetG = 2;
+
+    const rIdx = Math.floor(i + offsetX + offsetR);
+    const gIdx = Math.floor(i + offsetX - offsetG);
+
+    const offsetIdx = Math.floor(i + offsetX);
+
+    newBuf32[i] =
+      (buf32[i] >> 24) << 24
+      | satMul8((buf32[offsetIdx] >> 16 & 0xff), brightnessOffset) << 16
+      | satMul8((buf32[gIdx] >> 8 & 0xff), brightnessOffset) << 8
+      | satMul8((buf32[rIdx] & 0xff), brightnessOffset);
+  }
+
+  log('vcr end');
   ctx.putImageData(newImageData, 0, 0);
   return ctx;
 }
@@ -163,6 +177,7 @@ async function vcr(text, message, currentOutput) {
 registerFont('plugins/fonts/papyrus.ttf', { family: 'Papyrus' });
 registerFont('plugins/fonts/VCR_OSD_MONO_1.001.ttf', { family: 'VCR OSD Mono' });
 registerFont('plugins/fonts/dpquake.ttf', { family: 'dpquake' });
+registerFont('plugins/fonts/Omikron.TTF', { family: 'Omikron' });
 
 // createTextGenerator('30pt VCR OSD Mono', vcrNoise)('ISNT IT FUNNY HOW WHENEVER A PARTY SEEMS TO BE WINDING DOWN AT SOMEBODYS HOUSE, YOU CAN ALWAYS KEEP IT GOING BY TALKING A LOT AND EATING AND DRINKING WHATEVERS LEFT.');
 
@@ -170,4 +185,5 @@ commands = {
   papyrus: createTextGenerator('20pt Papyrus', 30),
   vcr,
   quake: createTextGenerator('34pt dpquake', 70),
+  omikronthenomadsoulbygamevisionaryandnotedabuserdavidcage: createTextGenerator('34pt Omikron', 50),
 };
