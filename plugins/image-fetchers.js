@@ -32,10 +32,24 @@ async function imgsearch(text) {
   });
   const imageUrls = images.data.data.result.items.map(img => img.media);
   const finalImage = await fetchFastestImage(imageUrls);
+  const resizedImg = await sharp(finalImage.data)
+    .resize({
+      width: 600,
+    })
+    .toFormat('jpg')
+    .toBuffer();
   return {
-    data: finalImage.data,
+    data: resizedImg,
     ext: 'jpg',
   };
 }
 
-commands = { imgsearch };
+function testImage() {
+  const img = fs.readFileSync('plugins/test.png');
+  return {
+    data: img,
+    ext: 'png',
+  };
+}
+
+commands = { imgsearch, testImage };
