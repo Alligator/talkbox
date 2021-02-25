@@ -1,4 +1,6 @@
 const axios = require('axios');
+const sharp = require('sharp');
+const fs = require('fs');
 
 function fetchFastestImage(imageUrls) {
   return new Promise((resolve, reject) => {
