@@ -8,16 +8,19 @@
   },
   "dependencies": {
     "axios": "^0.19.0",
-    "better-sqlite3": "^5.4.3",
+    "better-sqlite3": "^7.4.1",
     "canvas": "^2.6.0",
     "cheerio": "^1.0.0-rc.3",
     "date-fns": "^2.13.0",
     "discord.js": "^11.6.4",
+    "emoji-regex": "^9.2.0",
     "gif-encoder-2": "^1.0.5",
     "gm": "^1.23.1",
     "heapdump": "^0.3.15",
     "jsweather": "git+https://github.com/sponge/jsweather.git",
-    "sharp": "^0.23.4",
-    "sqlite3": "^4.2.0"
+    "jsweather-local": "file://home/alligator/lib/jsweather/",
+    "seam-carving": "git+https://github.com/Alligator/seam-carving.git",
+    "sharp": "^0.28.3",
+    "thesaurus": "^0.0.1"
   }
 }

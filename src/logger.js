@@ -23,6 +23,7 @@ function ensure(db) {
 
 const db = sqlite('logs.db');
 ensure(db);
+db.pragma('journal_mode = WAL');
 
 function log(message) {
   const timeStamp = new Date().toISOString();
@@ -32,7 +33,7 @@ function log(message) {
 
 function logMessage(message) {
   if (message.guild) {
-    log(`${message.guild.name}[${message.channel.name}] <${message.author.username}> ${message.cleanContent}`);
+    log(`${message.id} ${message.guild.name}[${message.channel.name}] <${message.author.username}> ${message.cleanContent}`);
     db.prepare(`
       INSERT INTO logs
         (messageId, guildId, guildName, authorId, authorName, channelid, channelName, content)

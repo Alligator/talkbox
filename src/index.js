@@ -69,10 +69,10 @@ async function fetchFirstAttachment(message) {
 // message is the discord.js message object the commands came from
 async function runCommands(commands, message) {
   let currentOutput = null;
-  const layers = [{
+  const layer = {
     data: await fetchFirstAttachment(message),
     fn: null,
-  }];
+  };
 
   for (let i = 0; i < commands.length; i++) {
     const cmd = commands[i];
@@ -115,15 +115,24 @@ async function runCommands(commands, message) {
       // one command matched, run it
       try {
         const textInput = (cmd.args && cmd.args.length > 0) ? cmd.args.join(' ') : currentOutput;
-        const result = await plugins[0].func(
+
+        const cmdPromise = plugins[0].func(
           textInput,
           message,
           {
             text: currentOutput,
-            data: layers[layers.length - 1].data,
+            data: layer.data,
             rawArgs: cmd.rawArgs,
+            last: i === (commands.length - 1),
           },
         );
+        if (cmdPromise.catch) {
+          cmdPromise.catch((e) => {
+            logger.error(`error running command ${cmd.commandName}\n${e.stack}`);
+            throw new Error(`command ${cmd.commandName} failed`);
+          });
+        }
+        const result = await cmdPromise;
 
         if (typeof result === 'string') {
           // text output
@@ -132,10 +141,16 @@ async function runCommands(commands, message) {
           // data output, check if the type is 'compose'
           if (result.type === 'compose') {
             // if it is, add a new layer with this composition function
-            layers.push({ data: null, fn: result.fn });
+            layer.fn = result.fn;
           } else {
-            // otherwise replace the topmost layer
-            layers[layers.length - 1].data = result;
+            if (layer.fn) {
+              // compose
+              layer.data = await layer.fn(layer.data, result);
+              layer.fn = null;
+            } else {
+              // replace
+              layer.data = result;
+            }
           }
         }
 
@@ -147,7 +162,7 @@ async function runCommands(commands, message) {
           return { text: e.message };
         }
 
-        throw new Error(`command ${cmd.commandName} failed`);
+        return;
       }
 
     } else if (plugins.length > 1) {
@@ -161,26 +176,9 @@ async function runCommands(commands, message) {
     }
   }
 
-  // run all the compositions
-  let currentLayer = null;
-
-  // for (let i = layers.length - 1; i >= 0; i--) {
-  for (let i = 0; i < layers.length; i++) {
-    const layer = layers[i];
-    const nextLayer = layers[i + 1];
-
-    if (nextLayer && nextLayer.fn) {
-      // compose this and the next layer using the next layer's fn
-      layers[i + 1].data = await nextLayer.fn(layer.data, nextLayer.data);
-    } else {
-      // no comp function, use this as the last layer
-      currentlayer = layer;
-    }
-  }
-
   return {
     text: currentOutput,
-    data: currentlayer.data,
+    data: layer.data,
   };
 }
 
@@ -336,7 +334,11 @@ client.on('message', async (message) => {
 
   const commands = parseCommands(messageText);
   try {
-    const result = await runCommands(commands, message);
+    const promise = runCommands(commands, message);
+    promise.catch((e) => {
+      logger.error(e.stack);
+    });
+    const result = await promise;
     if (result && result.data && result.data.ext) {
       const attachment = new Discord.Attachment(result.data.data, `${message.id}.${result.data.ext}`);
       message.channel.send(attachment);
@@ -367,3 +369,9 @@ pw.watchFiles();
 
 logger.info('logging in to discord');
 client.login(config.token);
+
+// stop unhandled promise rejection killing the bot
+process.on('unhandledRejection', function(reason, p){
+  console.log("Possibly Unhandled Rejection at: Promise ", p, " reason: ", reason);
+  // application specific logging here
+});

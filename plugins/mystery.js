@@ -17,5 +17,6 @@ function mystery(text, message) {
     setTimeout(() => clearInterval(interval), 20000);
   });
 }
+mystery._help = 'iTs a mYsTErY';
 
 commands = { mystery };

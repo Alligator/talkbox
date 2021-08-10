@@ -2,7 +2,7 @@ const fs = require('fs');
 const { registerFont, createCanvas, Image } = require('canvas');
 const textWrap = require('../plugins/utils/text-wrap');
 
-function createTextGenerator(font, lineHeight, postProcess) {
+function createTextGenerator(font, lineHeight, opts = {}) {
   const padding = 4;
 
   return (text, message, currentOutput) =>  {
@@ -55,8 +55,8 @@ function createTextGenerator(font, lineHeight, postProcess) {
       }
     }
 
-    if (postProcess) {
-      postProcess(ctx);
+    if (opts.postProcess) {
+      opts.postProcess(ctx);
     }
 
     const buf =  canvas.toBuffer('image/png');
@@ -151,7 +151,7 @@ function vcrNoise(ctx) {
   return ctx;
 }
 
-const vcrGen = createTextGenerator('30pt VCR OSD Mono', 34, vcrNoise);
+const vcrGen = createTextGenerator('30pt VCR OSD Mono', 34, { postProcess: vcrNoise });
 
 async function vcr(text, message, currentOutput) {
   if (text && text.length) {
@@ -174,10 +174,61 @@ async function vcr(text, message, currentOutput) {
   }
 }
 
+function darkSouls(text, message, currentOutput) {
+  const padding = 4;
+  const lineHeight = 50;
+  let finalText = (currentOutput.rawArgs || text)
+    .replace(/```/g, '');
+
+  const height = lineHeight;
+  const canvas = createCanvas(100, height);
+  const ctx = canvas.getContext('2d');
+
+  ctx.font = '34pt Garamond';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'white';
+  const metrics = ctx.measureText(text);
+
+  ctx.canvas.width = metrics.width + (padding * 2) + 20;
+  ctx.font = '34pt Garamond';
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'white';
+
+  ctx.fillText(text, ctx.canvas.width / 2, ctx.canvas.height / 2);
+
+  let alpha = 0;
+  let alphaDelta = 0;
+  for (let i = 0; i < ctx.canvas.width; i++) {
+    if (i < 20) {
+      alpha += 0.05;
+    } else if (i > (ctx.canvas.width - 20)) {
+      alpha -= 0.05;
+    } else if (i % 5 === 0) {
+      if (Math.random() > 0.25) {
+        alphaDelta = 0.05;
+      } else {
+        alphaDelta = -0.05;
+      }
+      alpha = Math.max(Math.min(alpha + alphaDelta, 1), 0.5);
+    }
+
+    ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(2)})`;
+    ctx.fillRect(i, lineHeight - 10, 1, 1);
+
+    ctx.fillStyle = `rgba(255, 255, 255, ${(alpha * 0.75).toFixed(2)})`;
+    ctx.fillRect(i, lineHeight - 9, 1, 1);
+  }
+
+  const buf =  canvas.toBuffer('image/png');
+  return { data: buf, ext: 'png' };
+}
+
 registerFont('plugins/fonts/papyrus.ttf', { family: 'Papyrus' });
 registerFont('plugins/fonts/VCR_OSD_MONO_1.001.ttf', { family: 'VCR OSD Mono' });
 registerFont('plugins/fonts/dpquake.ttf', { family: 'dpquake' });
 registerFont('plugins/fonts/Omikron.TTF', { family: 'Omikron' });
+registerFont('plugins/fonts/dark-souls.ttf', { family: 'Garamond' });
 
 // createTextGenerator('30pt VCR OSD Mono', vcrNoise)('ISNT IT FUNNY HOW WHENEVER A PARTY SEEMS TO BE WINDING DOWN AT SOMEBODYS HOUSE, YOU CAN ALWAYS KEEP IT GOING BY TALKING A LOT AND EATING AND DRINKING WHATEVERS LEFT.');
 
@@ -186,4 +237,5 @@ commands = {
   vcr,
   quake: createTextGenerator('34pt dpquake', 70),
   omikronthenomadsoulbygamevisionaryandnotedabuserdavidcage: createTextGenerator('34pt Omikron', 50),
+  darksouls: darkSouls,
 };

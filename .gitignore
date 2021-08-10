@@ -1,7 +1,11 @@
 *.ignore
 *.swp
 *.db
+*.db-shm
+*.db-wal
 node_modules/
 plugins/*.ignore.js
+plugins/archive
 config.json
 persist.json
+tmp/

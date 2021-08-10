@@ -2,13 +2,12 @@ const sharp = require('sharp');
 const axios = require('axios');
 const gm = require('gm');
 const fs = require('fs');
-const getMostRecentImage = require('../plugins/utils/most-recent-image');
 
 async function filterImage(image, filterFn) {
   return new Promise(async (resolve, reject) => {
     const img = gm(image);
     const result = filterFn(img);
-    result.toBuffer('PNG', (err, buffer) => {
+    result.toBuffer((err, buffer) => {
       if (err) {
         reject(err);
       }
@@ -51,6 +50,10 @@ const imgCommands = {
     args: ['fradius'],
     fn: (img, radius) => img.sharpen(radius),
   },
+  rotate: {
+    args: ['idegrees'],
+    fn: (img, degrees) => img.rotate('transparent', degrees).trim(),
+  },
 };
 
 async function img(text, message, { data }) {
@@ -83,7 +86,7 @@ async function img(text, message, { data }) {
     const result = await filterImage(data.data, img => imgCommand.fn(img, ...parsedArgs));
     return {
       data: result,
-      ext: 'png',
+      ext: data.ext || 'png',
     };
   } else {
     return img._help;
@@ -133,13 +136,7 @@ function blend(text, message) {
         .resize({
           width: imgMeta.width,
           height: imgMeta.height,
-          fit: 'outside',
-        })
-        .extract({
-          left: 0,
-          top: 0,
-          width: imgMeta.width,
-          height: imgMeta.height,
+          fit: 'inside',
         })
         .toBuffer();
 
@@ -162,7 +159,18 @@ function blend(text, message) {
 
 img._help = 'img command [args...] manipulate an image. possible commands:\n```' +
   Object.keys(imgCommands)
-  .map(cmd => `${cmd} ${(imgCommands[cmd].args || []).map(x => x.slice(1))}`)
+  .map((cmd) => {
+    const args = (imgCommands[cmd].args || []).map((arg) => {
+      const type = arg[0];
+      const name = arg.slice(1);
+      switch (type) {
+        case 'f': return `${name}:float`;
+        case 'i': return `${name}:int`;
+        default: return name;
+      }
+    });
+    return `${cmd} ${args.join(' ')}`;
+  })
   .join('\n')
   + '```';
 

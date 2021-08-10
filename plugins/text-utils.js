@@ -113,6 +113,10 @@ const parens = unicodeConvert([
   [65,  92,   0x249C],
   [97,  124,  0x249C],
 ]);
+const monospace = unicodeConvert([
+  [65,  92,   0x1D670],
+  [97,  124,  0x1D68A],
+]);
 
 commands = {
   uppercase,
@@ -123,4 +127,5 @@ commands = {
   jab,
   circles,
   parens,
+  monospace,
 };

@@ -26,6 +26,9 @@ async function gun(text, message, currentOutput) {
   const img = sharp(inputImg);
   const imgMeta = await img.metadata();
 
+  const leftHanded = Math.random() > 0.9;
+  const centered = gunFile.startsWith('centre-');
+
   let size = Math.floor(Math.min(imgMeta.width / 3 , imgMeta.height / 3));
   size += Math.floor((size * gunRatio) / 3);
 
@@ -36,12 +39,13 @@ async function gun(text, message, currentOutput) {
       fit: 'inside',
       kernel: 'nearest',
     })
+    .flop(!centered && leftHanded)
     .toBuffer();
 
   const result = await img
     .composite([{
       input: gunBuf,
-      gravity: gunFile.startsWith('centre-') || gunFile.startsWith('framed-') ? 'south' : 'southeast',
+      gravity: centered || gunFile.startsWith('framed-') ? 'south' : (leftHanded ? 'southwest' : 'southeast'),
     }])
     .toFormat('png')
     .toBuffer();

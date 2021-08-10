@@ -124,7 +124,7 @@ function renderType(frames) {
 
   const encoder = new GIFEncoder(width, height)
   encoder.start()
-  encoder.setRepeat(1);
+  encoder.setRepeat(-1);
 
   frames.forEach((frame, idx) => {
     const canvas = createCanvas(width, height);

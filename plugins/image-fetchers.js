@@ -1,6 +1,7 @@
 const axios = require('axios');
 const sharp = require('sharp');
 const fs = require('fs');
+const getMostRecentImage = require('../plugins/utils/most-recent-image');
 
 function fetchFastestImage(imageUrls) {
   return new Promise((resolve, reject) => {
@@ -11,7 +12,7 @@ function fetchFastestImage(imageUrls) {
         // these promises only resolve never reject, so the race call below only gets successful requests
         axios.get(url, { cancelToken: ct, responseType: 'arraybuffer' })
         .then(resolve)
-        .catch(() => null)));
+        .catch((e) => { throw e; })));
 
     Promise.race(promises).then((result) => {
       source.cancel('cancelled');
@@ -21,14 +22,14 @@ function fetchFastestImage(imageUrls) {
 }
 
 async function imgsearch(text) {
-  const images = await axios.get('https://api.qwant.com/api/search/images', {
+  const images = await axios.get('https://api.qwant.com/v3/search/images', {
     params: {
       count: 5,
       q: text,
       t: 'images',
       safesearch: 1,
       locale: 'en_US',
-      uiv: 4,
+      uiv: 5,
       offset: Math.floor(Math.random() * 10),
     },
   });
@@ -46,6 +47,11 @@ async function imgsearch(text) {
   };
 }
 
+async function lastImage(text, message) {
+  const img = await getMostRecentImage(message);
+  return { data: img, ext: 'png' };
+}
+
 function testImage() {
   const img = fs.readFileSync('plugins/test.png');
   return {
@@ -54,4 +60,4 @@ function testImage() {
   };
 }
 
-commands = { imgsearch, testImage };
+commands = { imgsearch, testImage, lastimage: lastImage };

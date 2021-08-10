@@ -2,7 +2,7 @@ const axios = require('axios');
 const util = require('util');
 
 const BASE_CURRENCY = 'EUR';
-let currencies = {};
+let currencies = { rates: {} };
 let lastFetched = null;
 
 // initial fetch
@@ -16,7 +16,7 @@ async function fetchCurrencies() {
     return currencies
   } else {
     log('fetching currencies');
-    const resp = await axios.get('https://api.exchangeratesapi.io/latest');
+    const resp = await axios.get(`https://open.er-api.com/v6/latest/${BASE_CURRENCY}`);
     lastFetched = new Date().getTime();
     currencies = resp.data;
     currencies.rates[BASE_CURRENCY] = 1;
