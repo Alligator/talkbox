@@ -57,7 +57,7 @@ class PluginWatcher {
         log: pluginLog(fileName),
         Math,
         process,
-        RichEmbed: Discord.RichEmbed,
+        MessageEmbed: Discord.MessageEmbed,
         Attachment: Discord.Attachment,
         Buffer,
         gc,

@@ -237,7 +237,7 @@ function myPrices(text, message) {
 
   const formatDate = ts => format(new Date(ts), 'yyyy-MM-dd HH:mm (EEE)');
 
-  const embed = new RichEmbed();
+  const embed = new MessageEmbed();
   embed.setTitle(`${name}'s price history`);
   embed.setFooter('times in UTC');
 
@@ -251,7 +251,7 @@ function myPrices(text, message) {
     .map(p => `${formatDate(p.timestamp)}  ${p.price}`)
     .join('\n') + '```');
 
-  message.channel.send(embed);
+  message.channel.send({ embeds: [embed] });
 }
 
 function sunday(text, message) {
@@ -271,7 +271,7 @@ function sunday(text, message) {
     return 'no buy prices saved';
   }
 
-  const embed = new RichEmbed()
+  const embed = new MessageEmbed()
   embed.setTitle('stalk market insider trading')
 
   let output = '';
@@ -288,7 +288,7 @@ function sunday(text, message) {
   });
 
   embed.addField('selling prices', output);
-  message.channel.send(embed);
+  message.channel.send({ embeds: [embed] });
 }
 
 function turnips(text, message) {
@@ -313,7 +313,7 @@ function turnips(text, message) {
 
   const prices = getWeeklyPrices();
 
-  const embed = new RichEmbed();
+  const embed = new MessageEmbed();
   embed.setTitle('stalk market insider trading');
 
   let output = '';
@@ -339,7 +339,7 @@ function turnips(text, message) {
     embed.attachFile({ name: 'trend.png', attachment: trends });
     embed.setImage('attachment://trend.png');
   }
-  message.channel.send(embed);
+  message.channel.send({ embeds: [embed] });
 }
 
 ensureDb();

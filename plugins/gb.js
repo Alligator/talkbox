@@ -5,7 +5,7 @@ const fuzzyTime = require('../plugins/utils/fuzzy-time');
 async function getUpcoming(text, message) {
   const src = await axios.get('https://giantbomb.com');
   const $ = cheerio.load(src.data);
-  const embed = new RichEmbed()
+  const embed = new MessageEmbed()
     .setThumbnail('https://giantbomb1.cbsistatic.com/bundles/giantbombsite/images/logo.png');
   
   let value = '';
@@ -36,7 +36,7 @@ async function getUpcoming(text, message) {
   });
 
   embed.addField('Giant Bomb Upcoming', value || 'apparently nothing');
-  message.channel.send(embed);
+  message.channel.send({ embeds: [embed] });
 }
 getUpcoming._help = 'gb - get upcoming giantbomb stuff';
 

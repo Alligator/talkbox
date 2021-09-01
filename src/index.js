@@ -95,7 +95,7 @@ async function runCommands(commands, message) {
         // one command matched in a help command, show the help message
         const embed = new MessageEmbed();
         embed.addField(plugins[0].name, plugins[0].help || 'no help available');
-        message.channel.send(embed);
+        message.channel.send({ embeds: [embed] });
         return;
       }
 
@@ -111,7 +111,7 @@ async function runCommands(commands, message) {
 
         embeds.forEach(e => embed.addField('\u200B', e, true));
         embed.setTitle('available commands');
-        message.channel.send(embed);
+        message.channel.send({ embeds: [embed] });
         return;
       }
 
