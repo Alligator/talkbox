@@ -348,7 +348,7 @@ client.on('messageCreate', async (message) => {
     const result = await promise;
     if (result && result.data && result.data.ext) {
       const attachment = new MessageAttachment(result.data.data, `${message.id}.${result.data.ext}`);
-      message.channel.send(attachment);
+      message.channel.send({ files: [attachment] });
     } else if (result && result.text) {
       message.channel.send(result.text);
     } else if (result && typeof result === 'string') {

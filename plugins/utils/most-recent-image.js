@@ -1,13 +1,13 @@
 const axios = require('axios');
 
 async function getMostRecentImage(message) {
-  const prevMessages = await message.channel.fetchMessages({ limit: 20, before: message.id })
+  const prevMessages = await message.channel.messages.fetch({ limit: 20, before: message.id })
   const reversedMessages = prevMessages.sort((a, b) => b.createdTimestamp - a.createdTimestamp);
 
   let url;
   for (const [id, msg] of reversedMessages) {
     // maybe a bad assumption? if an attachment has a width it's an image
-    if (msg.attachments.size && msg.attachments.exists(a => a.width)) {
+    if (msg.attachments.size && msg.attachments.some(a => a.width)) {
       url = msg.attachments.first().url;
       break;
     } else if (msg.embeds.length) {
