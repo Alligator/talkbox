@@ -108,7 +108,7 @@ class PluginWatcher {
 
     Object.keys(plugin).forEach((pluginKey) => {
       const func = plugin[pluginKey];
-      if (func._regex) {
+      if (func && func._regex) {
         this.regexes.push({
           id: null,
           name: pluginKey,
@@ -170,7 +170,7 @@ class PluginWatcher {
 
     Object.keys(plugin).forEach((pluginKey) => {
       const func = plugin[pluginKey];
-      if (func._interval) {
+      if (func && func._interval) {
         this.intervals.push({
           id: null,
           name: pluginKey,

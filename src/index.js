@@ -1,4 +1,4 @@
-const Discord = require('discord.js');
+const { Client, Intents, MessageEmbed, MessageAttachment } = require('discord.js');
 const repl = require('repl');
 const axios = require('axios');
 
@@ -9,7 +9,14 @@ const db = require('./db');
 
 const config = require('../config.json');
 
-const client = new Discord.Client();
+const intents = new Intents([
+  Intents.FLAGS.GUILDS,
+  Intents.FLAGS.GUILD_MESSAGES,
+  Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+  Intents.FLAGS.DIRECT_MESSAGES,
+]);
+const client = new Client({ intents });
+
 let pw = new PluginWatcher(client);
 
 async function fetchFirstAttachment(message) {
@@ -86,14 +93,14 @@ async function runCommands(commands, message) {
     if (showHelp) {
       if (plugins.length === 1) {
         // one command matched in a help command, show the help message
-        const embed = new Discord.RichEmbed();
+        const embed = new MessageEmbed();
         embed.addField(plugins[0].name, plugins[0].help || 'no help available');
         message.channel.send(embed);
         return;
       }
 
       if (!commandName) {
-        const embed = new Discord.RichEmbed();
+        const embed = new MessageEmbed();
         const commandNames = Object.keys(pw.commands)
           .sort((a, b) => a.localeCompare(b))
         let embeds = ['', '', ''];
@@ -295,7 +302,7 @@ client.on('disconnect', () => {
   pw.stopIntervals();
 });
 
-client.on('message', async (message) => {
+client.on('messageCreate', async (message) => {
   logger.logMessage(message);
 
   if (message.author.bot) {
@@ -306,7 +313,7 @@ client.on('message', async (message) => {
   if (message.content.startsWith(config.leader)) {
     // message starts with the leader
     messageText = message.content.slice(1);
-  } else if (message.isMentioned(client.user)) {
+  } else if (message.mentions.has(client.user)) {
     // message mentions the bot, remove the mention
     messageText = message.content
       .replace(/<@\d+>/, '')
@@ -330,7 +337,7 @@ client.on('message', async (message) => {
     return;
   }
 
-  message.channel.startTyping();
+  message.channel.sendTyping();
 
   const commands = parseCommands(messageText);
   try {
@@ -340,7 +347,7 @@ client.on('message', async (message) => {
     });
     const result = await promise;
     if (result && result.data && result.data.ext) {
-      const attachment = new Discord.Attachment(result.data.data, `${message.id}.${result.data.ext}`);
+      const attachment = new MessageAttachment(result.data.data, `${message.id}.${result.data.ext}`);
       message.channel.send(attachment);
     } else if (result && result.text) {
       message.channel.send(result.text);
@@ -350,8 +357,6 @@ client.on('message', async (message) => {
   } catch (e) {
     logger.error(e.stack);
   }
-
-  message.channel.stopTyping();
 });
 
 client.on('messageUpdate', (oldMessage, newMessage) => {
