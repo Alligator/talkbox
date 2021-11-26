@@ -40,4 +40,4 @@ async function getUpcoming(text, message) {
 }
 getUpcoming._help = 'gb - get upcoming giantbomb stuff';
 
-commands = { giantbomb: getUpcoming };
+commands = { giantbomb: getUpcoming, gb: getUpcoming };
