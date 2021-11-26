@@ -31,6 +31,9 @@ class PluginWatcher {
     // regex matches
     this.regexes = [];
 
+    // events
+    this.events = [];
+
     // intervals are used internally to debounce file loading
     this.loadPluginIntervals = {};
 
@@ -59,6 +62,7 @@ class PluginWatcher {
         process,
         MessageEmbed: Discord.MessageEmbed,
         Attachment: Discord.Attachment,
+        Discord,
         Buffer,
         gc,
         sql,
@@ -68,6 +72,7 @@ class PluginWatcher {
       this.registerCommandsFromPlugin(fileName, this.plugins[fileName]);
       this.registerIntervalsFromPlugin(fileName, this.plugins[fileName]);
       this.registerRegexesFromPlugin(fileName, this.plugins[fileName]);
+      this.registerEventsFromPlugin(fileName, this.plugins[fileName]);
     } catch (e) {
       logger.error(`failed! ${e} ${e.stack}`);
     }
@@ -117,6 +122,31 @@ class PluginWatcher {
           fileName,
         });
         logger.info(`  loaded regex ${pluginKey}`);
+      }
+    });
+  }
+
+  registerEventsFromPlugin(fileName, plugin) {
+    // remove existing event listeners for this file
+    this.events = this.events.filter((event) => {
+      if (event.fileName === fileName) {
+        this.client.off(event.event, event.func);
+        logger.info(`  removed event ${event.event}`);
+        return false;
+      }
+      return true;
+    });
+
+    Object.keys(plugin).forEach((pluginKey) => {
+      const func = plugin[pluginKey];
+      if (func && func._event) {
+        this.events.push({
+          event: func._event,
+          func,
+          fileName,
+        });
+        this.client.on(func._event, func);
+        logger.info(`  registered event ${func._event} for ${pluginKey}`);
       }
     });
   }
