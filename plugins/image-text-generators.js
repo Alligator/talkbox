@@ -175,7 +175,7 @@ async function vcr(text, message, currentOutput) {
 }
 
 function darkSouls(text, message, currentOutput) {
-  const padding = 4;
+  const padding = 16;
   const lineHeight = 50;
   let finalText = (currentOutput.rawArgs || text)
     .replace(/```/g, '');
@@ -206,11 +206,11 @@ function darkSouls(text, message, currentOutput) {
       alpha -= 0.05;
     } else if (i % 5 === 0) {
       if (Math.random() > 0.25) {
-        alphaDelta = 0.05;
+        alphaDelta = 0.08;
       } else {
-        alphaDelta = -0.05;
+        alphaDelta = -0.08;
       }
-      alpha = Math.max(Math.min(alpha + alphaDelta, 1), 0.5);
+      alpha = Math.max(Math.min(alpha + alphaDelta, 0.9), 0.3);
     }
 
     ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(2)})`;
@@ -220,7 +220,11 @@ function darkSouls(text, message, currentOutput) {
     ctx.fillRect(i, lineHeight - 9, 1, 1);
   }
 
-  const buf =  canvas.toBuffer('image/png');
+  const finalCanvas = createCanvas(canvas.width * 0.9, canvas.height);
+  const finalCtx = finalCanvas.getContext('2d');
+  finalCtx.drawImage(canvas, 0, 0, finalCanvas.width, finalCanvas.height);
+
+  const buf =  finalCanvas.toBuffer('image/png');
   return { data: buf, ext: 'png' };
 }
 

@@ -19,7 +19,7 @@ function bezier(t, p0, p1, p2, p3) {
 function oneHundred(text) {
   const canvas = createCanvas(110, 110);
   const ctx = canvas.getContext('2d');
-  text = text.slice(0, 30);
+  text = text.slice(0, 50);
 
   ctx.font = '56pt Ranga';
 

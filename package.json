@@ -19,8 +19,9 @@
     "heapdump": "^0.3.15",
     "jsweather": "git+https://github.com/sponge/jsweather.git",
     "jsweather-local": "file://home/alligator/lib/jsweather/",
-    "seam-carving": "git+https://github.com/Alligator/seam-carving.git",
+    "seam-carving": "github:Alligator/seam-carving",
     "sharp": "^0.28.3",
+    "sqlite3": "^5.0.2",
     "thesaurus": "^0.0.1"
   }
 }

@@ -11,7 +11,11 @@ function fetchFastestImage(imageUrls) {
       new Promise((resolve, reject) =>
         // these promises only resolve never reject, so the race call below only gets successful requests
         axios.get(url, { cancelToken: ct, responseType: 'arraybuffer' })
-        .then(resolve)
+        .then((resp) => {
+          if (resp.headers['content-type'].startsWith('image')) {
+            resolve(resp);
+          }
+        })
         .catch((e) => { throw e; })));
 
     Promise.race(promises).then((result) => {
@@ -35,6 +39,7 @@ async function imgsearch(text) {
   });
   const imageUrls = images.data.data.result.items.map(img => img.media);
   const finalImage = await fetchFastestImage(imageUrls);
+  log(finalImage.config.url);
   const resizedImg = await sharp(finalImage.data)
     .resize({
       width: 600,
@@ -52,6 +57,13 @@ async function lastImage(text, message) {
   return { data: img, ext: 'png' };
 }
 
+async function duck() {
+  const img = await axios.get('https://random-d.uk/api/v2/randomimg', { responseType: 'arraybuffer' })
+  const contentType = img.headers['content-type'];
+  const ext = contentType.replace('image/', '');
+  return { data: img.data, ext };
+}
+
 function testImage() {
   const img = fs.readFileSync('plugins/test.png');
   return {
@@ -60,4 +72,4 @@ function testImage() {
   };
 }
 
-commands = { imgsearch, testImage, lastimage: lastImage };
+commands = { imgsearch, testImage, lastimage: lastImage, duck };

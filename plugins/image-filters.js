@@ -123,6 +123,7 @@ function overlay(text, message) {
     },
   };
 }
+overlay._help = 'overlay [gravity] overlay two images. gravity can be "center" or a direction, e.g. "west" or "southeast".';
 
 function blend(text, message) {
   const blend = text.length ? text : 'screen';
@@ -156,6 +157,7 @@ function blend(text, message) {
     },
   };
 }
+blend._help = 'blend [type]\nblend two iamges together.\n\ntype can be one of `clear`, `source`, `over`, `in`, `out`, `atop`, `dest`, `dest-over`, `dest-in`, `dest-out`, `dest-atop`, `xor`, `add`, `saturate`, `multiply`, `screen`, `overlay`, `darken`, `lighten`, `colour-dodge`, `color-dodge`, `colour-burn,color-burn`, `hard-light`, `soft-light`, `difference` and `exclusion`. the default is `screen`.';
 
 img._help = 'img command [args...] manipulate an image. possible commands:\n```' +
   Object.keys(imgCommands)
