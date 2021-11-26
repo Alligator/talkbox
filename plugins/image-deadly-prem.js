@@ -81,4 +81,4 @@ function deadlyPrem(text) {
   });
 }
 
-commands = { deadlyPrem };
+commands = { deadlypremonition: deadlyPrem };
