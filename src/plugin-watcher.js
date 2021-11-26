@@ -13,8 +13,9 @@ function pluginLog(fileName) {
 }
 
 class PluginWatcher {
-  constructor(client) {
+  constructor(client, slashCommandManager) {
     this.client = client;
+    this.slashCommandManager = slashCommandManager;
 
     // a plugin is the environment (all of the globals) we get after executing a
     // .js file in the plugins directory.
@@ -92,19 +93,25 @@ class PluginWatcher {
   // found in it
   registerCommandsFromPlugin(fileName, plugin) {
     const commands = plugin.commands;
-    if (!commands) {
-      return;
+    if (commands) {
+      Object.keys(commands).map((commandName) => {
+        logger.info(`  loaded command ${commandName}`);
+        this.commands[commandName] = {
+          name: commandName,
+          func: plugin.commands[commandName],
+          help: plugin.commands[commandName]._help,
+          fileName,
+        };
+      });
     }
 
-    Object.keys(commands).map((commandName) => {
-      logger.info(`  loaded command ${commandName}`);
-      this.commands[commandName] = {
-        name: commandName,
-        func: plugin.commands[commandName],
-        help: plugin.commands[commandName]._help,
-        fileName,
-      };
-    });
+    const slashCommands = plugin.slashCommands;
+    if (slashCommands) {
+      slashCommands.forEach((slashCommand) => {
+        logger.info(`  loaded slash command ${slashCommand.config.name}`);
+        this.slashCommandManager.register(slashCommand.config, slashCommand.func);
+      });
+    }
   }
 
   registerRegexesFromPlugin(fileName, plugin) {

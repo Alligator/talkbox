@@ -1,4 +1,4 @@
-const { Client, Intents, MessageEmbed, MessageAttachment } = require('discord.js');
+const { Client, Intents, MessageEmbed, MessageAttachment, CommandInteraction } = require('discord.js');
 const repl = require('repl');
 const axios = require('axios');
 
@@ -8,6 +8,7 @@ const parseCommands = require('./command-parser');
 const db = require('./db');
 
 const config = require('../config.json');
+const SlashCommandManager = require('./slash-command-manager');
 
 const intents = new Intents([
   Intents.FLAGS.GUILDS,
@@ -17,9 +18,14 @@ const intents = new Intents([
 ]);
 const client = new Client({ intents });
 
-let pw = new PluginWatcher(client);
+let scm = new SlashCommandManager(client, '109063664560009216');
+let pw = new PluginWatcher(client, scm);
 
 async function fetchFirstAttachment(message) {
+  if (!message.attachments) {
+    return null;
+  }
+
   const attachments = message.attachments.filter(a => a.url);
   if (attachments.size === 0) {
     return null;
@@ -125,7 +131,16 @@ async function runCommands(commands, message) {
 
         const cmdPromise = plugins[0].func(
           textInput,
-          message,
+          { // message wrapper
+            id: message.id,
+            client: message.client,
+            author: message.author || message.user,
+            channel: message.channel,
+            isInteraction: message instanceof CommandInteraction,
+            reply: message instanceof CommandInteraction ? message.editReply : message.reply,
+            edit: message instanceof CommandInteraction ? message.editReply : message.edit,
+            raw: message,
+          },
           {
             text: currentOutput,
             data: layer.data,
@@ -189,8 +204,54 @@ async function runCommands(commands, message) {
   };
 }
 
+async function registerSlashCommand() {
+  client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isCommand()) {
+      return;
+    }
+    const commandName = interaction.commandName;
+    logger.info(`${interaction.id} ${interaction.guild.name}[${interaction.channel.name}] <${interaction.user.username}> /${commandName}`);
+
+    await interaction.deferReply();
+
+    let result;
+    if (commandName !== 'homero') {
+      const func = scm.get(commandName);
+      result = await func(interaction);
+    } else {
+      const commands = parseCommands(interaction.options.getString('command'));
+      const promise = runCommands(commands, interaction);
+      promise.catch((e) => {
+        logger.error(e.stack);
+      });
+      result = await promise;
+    }
+
+
+    try {
+      if (result && result.data && result.data.ext) {
+        const attachment = new MessageAttachment(result.data.data, `${interaction.id}.${result.data.ext}`);
+        interaction.editReply({ files: [attachment] });
+      } else if (result && result.text) {
+        interaction.editReply(result.text);
+      } else if (result && typeof result === 'string') {
+        interaction.editReply(result);
+      } else {
+        // no response, assume the command handled replying itself
+        interaction.deleteReply();
+      }
+    } catch (e) {
+      logger.error(e.stack);
+      throw e;
+    }
+  });
+
+}
+
 client.on('ready', () => {
   logger.info('login successful');
+  registerSlashCommand();
+
   pw.startIntervals(client);
   const replServer = repl.start('talkbox> ');
   replServer.context.client = client;
