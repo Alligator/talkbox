@@ -1,7 +1,7 @@
 const axios = require('axios');
 
-async function getMostRecentImage(message) {
-  const prevMessages = await message.channel.messages.fetch({ limit: 20, before: message.id })
+async function getMostRecentImage(message, limit = 20) {
+  const prevMessages = await message.channel.messages.fetch({ limit, before: message.id })
   const reversedMessages = prevMessages.sort((a, b) => b.createdTimestamp - a.createdTimestamp);
 
   let url;
