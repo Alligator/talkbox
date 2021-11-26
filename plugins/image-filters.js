@@ -126,7 +126,7 @@ function overlay(text, message) {
 overlay._help = 'overlay [gravity] overlay two images. gravity can be "center" or a direction, e.g. "west" or "southeast".';
 
 function blend(text, message) {
-  const blend = text.length ? text : 'screen';
+  const blend = text || 'screen';
   return {
     type: 'compose',
     fn: async (img1, img2) => {
@@ -159,6 +159,77 @@ function blend(text, message) {
 }
 blend._help = 'blend [type]\nblend two iamges together.\n\ntype can be one of `clear`, `source`, `over`, `in`, `out`, `atop`, `dest`, `dest-over`, `dest-in`, `dest-out`, `dest-atop`, `xor`, `add`, `saturate`, `multiply`, `screen`, `overlay`, `darken`, `lighten`, `colour-dodge`, `color-dodge`, `colour-burn,color-burn`, `hard-light`, `soft-light`, `difference` and `exclusion`. the default is `screen`.';
 
+function stack(text) {
+  const position = text || 'below'
+  return {
+    type: 'compose',
+    fn: async (img1Raw, img2Raw) => {
+      const img1 = await sharp(img1Raw.data);
+      const img1Meta = await img1.metadata();
+
+      const img2 = await sharp(img2Raw.data);
+      const img2Meta = await img2.metadata();
+
+      switch (position) {
+        case 'below': {
+          const img2Resized = await img2.resize({
+            width: img1Meta.width,
+          }).toBuffer();
+
+          // wtf sharp
+          const img2Height = (await sharp(img2Resized).metadata()).height;
+
+          const workspace = sharp({
+            create: {
+              width: img1Meta.width,
+              height: img1Meta.height + img2Height,
+              channels: 4,
+              background: { r: 0, g: 0, b: 0, alpha: 0 },
+            },
+          });
+
+          const result = await workspace
+            .composite([
+              { input: (await img1.toBuffer()), gravity: 'north' },
+              { input: img2Resized, gravity: 'south' }
+            ])
+            .toFormat('png')
+            .toBuffer();
+
+          return {
+            data: result,
+            ext: 'png',
+          }
+        }
+        default: {
+          return `unknown position ${position}`;
+        }
+      }
+    },
+  };
+}
+
+async function jpeg(text, message, currentOutput) {
+  const quality = parseInt(text, 10) || 20;
+
+  let inputImg;
+  if (currentOutput.data) {
+    inputImg = currentOutput.data.data;
+  } else {
+    inputImg = await getMostRecentImage(message);
+    if (typeof inputImg === 'string') {
+      // error message
+      return inputImg;
+    }
+  }
+
+  const buf = await sharp(inputImg)
+    .toFormat('jpeg', { quality })
+    .toBuffer();
+
+  return { data: buf, ext: 'jpg' };
+}
+
 img._help = 'img command [args...] manipulate an image. possible commands:\n```' +
   Object.keys(imgCommands)
   .map((cmd) => {
@@ -176,4 +247,4 @@ img._help = 'img command [args...] manipulate an image. possible commands:\n```'
   .join('\n')
   + '```';
 
-commands = { img, overlay, blend };
+commands = { img, overlay, blend, stack, jpeg };
