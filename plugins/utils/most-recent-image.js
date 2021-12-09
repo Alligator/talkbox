@@ -1,7 +1,12 @@
 const axios = require('axios');
 
-async function getMostRecentImage(message, limit = 20) {
-  const prevMessages = await message.channel.messages.fetch({ limit, before: message.id })
+const defaultConfig = {
+  limit: 20,
+  stickers: false,
+};
+
+async function getMostRecentImage(message, cfg = defaultConfig) {
+  const prevMessages = await message.channel.messages.fetch({ limit: cfg.limit, before: message.id })
   const reversedMessages = prevMessages.sort((a, b) => b.createdTimestamp - a.createdTimestamp);
 
   let url;
@@ -16,6 +21,10 @@ async function getMostRecentImage(message, limit = 20) {
         url = embed.thumbnail.url;
         break;
       }
+    } else if (cfg.stickers && msg.stickers.size > 0) {
+      const sticker = msg.stickers.first();
+      url = sticker.url;
+      break;
     }
   }
 

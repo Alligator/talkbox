@@ -64,7 +64,7 @@ function wrapText(ctx, text, width) {
 }
 
 async function mtg(text, message, currentOutput) {
-  const img = await getMostRecentImage(message, 100);
+  const img = await getMostRecentImage(message, { limit: 100, stickers: true });
   const messages = await getMessages(message);
 
   if (messages.length < 3) {
