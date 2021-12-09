@@ -15,6 +15,7 @@ async function getMessages(message, count) {
     if (
       msg.attachments.size
       || msg.cleanContent.startsWith(config.leader)
+      || msg.cleanContent.includes('://')
     ) {
       continue;
     }
@@ -80,7 +81,7 @@ async function mtg(text, message, currentOutput) {
   const footer = messages[Math.floor(messages.length / 2)];
 
   const template = await loadImage('plugins/mtg.png');
-  const avatar = await loadImage(title.author.displayAvatarURL({ format: 'png' }));
+  const avatar = await loadImage(body.author.displayAvatarURL({ format: 'png' }));
   const canvas = createCanvas(template.width, template.height);
   const ctx = canvas.getContext('2d');
   ctx.drawImage(template, 0, 0);
