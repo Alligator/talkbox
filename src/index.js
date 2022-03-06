@@ -87,6 +87,20 @@ async function runCommands(commands, message) {
     fn: null,
   };
 
+  // expand any aliases
+  let expandedCommands = [];
+  for (let i = 0; i < commands.length; i++) {
+    const cmd = commands[i];
+    if (config.aliases && config.aliases[cmd.commandName]) {
+      const aliasWithArgs = config.aliases[cmd.commandName].replace('$', cmd.args.join(' '));
+      const replacementCmds = parseCommands(aliasWithArgs);
+      expandedCommands = expandedCommands.concat(replacementCmds);
+    } else {
+      expandedCommands.push(cmd);
+    }
+  }
+  commands = expandedCommands;
+
   for (let i = 0; i < commands.length; i++) {
     const cmd = commands[i];
 
