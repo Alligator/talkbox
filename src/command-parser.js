@@ -97,7 +97,120 @@ function parseCommands(text) {
   });
 }
 
+function parseExpression(text) {
+  let tokens = [];
+  {
+    // lex
+    let i = 0;
+
+    const peek = () => text[i];
+    const next = () => text[i++];
+    const atEnd = () => i >= text.length;
+
+    while (true) {
+      // skip whitespace
+      while (!atEnd() && peek() === ' ') {
+        next();
+      }
+
+      if (atEnd()) {
+        tokens.push(['eof']);
+        break;
+      }
+
+      const c = next();
+
+      // strings
+      if (c === '"') {
+        const start = i;
+        while (!atEnd() && peek() !== '"') {
+          next();
+        }
+        next(); // eat the "
+        tokens.push(['string', text.substring(start, i - 1)]);
+        continue;
+      }
+
+      // identifier
+      if (/[a-z]/.test(c)) {
+        const start = i - 1;
+        while (!atEnd() && /[a-z]/.test(peek())) {
+          next();
+        }
+        tokens.push(['identifier', text.substring(start, i)]);
+        continue;
+      }
+
+      switch (c) {
+        case '(':
+        case ')':
+        case ',':
+          tokens.push([c]);
+          break;
+        default:
+          throw new Error(`unexpected character ${c}`);
+      }
+    }
+  }
+
+  {
+    // parse
+    
+    let tp = 0;
+    let tok = tokens[tp++];
+
+    const next = () => {
+      tok = tokens[tp++];
+      return tok;
+    };
+
+    const consume = (type) => {
+      if (tok[0] === type) {
+        const prevTok = tok;
+        next();
+        return prevTok;
+      } else {
+        throw new Error(`expected ${type} but found ${tok[0]}`);
+      }
+    };
+
+    const call = () => {
+      const ident = consume('identifier')[1];
+      const args = [];
+      if (tok[0] === '(') {
+        consume('(');
+        while (tok[0] !== ')') {
+          args.push(arg());
+          if (tok[0] !== ',') {
+            break;
+          }
+          consume(',');
+        }
+        consume(')');
+      }
+
+      return { commandName: ident, args };
+    };
+
+    const arg = () => {
+      if (tok[0] === 'string') {
+        const str = tok[1];
+        consume('string');
+        return str;
+      }
+      return call();
+    };
+
+    return call();
+  }
+}
+
 if (require.main === module) {
+  parseExpression('stack(userbar, jpeg(userbar))');
+  parseExpression('userbar');
+  parseExpression('jpeg(userbar)');
+  parseExpression('imgsearch("tony")');
+
   assert.deepStrictEqual(
     parseCommands('simple example'),
     [
@@ -135,4 +248,4 @@ if (require.main === module) {
   );
 }
 
-module.exports = parseCommands;
+module.exports = { parseCommands, parseExpression };

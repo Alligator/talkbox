@@ -4,7 +4,7 @@ const axios = require('axios');
 
 const PluginWatcher = require('./plugin-watcher');
 const logger = require('./logger');
-const parseCommands = require('./command-parser');
+const { parseCommands, parseExpression } = require('./command-parser');
 const db = require('./db');
 
 const config = require('../config.json');
@@ -205,6 +205,95 @@ async function runCommands(commands, message) {
   };
 }
 
+async function runExpression(expr, message) {
+  console.log('running', expr);
+  const plugins = pw.getCommands(expr.commandName);
+
+  if (plugins.length === 0) {
+    logger.info(`no command found for ${expr.commandName}`);
+    return `unknown command ${expr.commandName}`;
+  }
+
+  if (plugins.length > 1){
+    const names = plugins.map(plug => plug.name);
+    return `did you mean ${names.slice(0, -1).join(', ')} or ${names[names.length-1]}?`;
+  }
+
+  // eval the args
+  const evaledArgs = [];
+  for (const arg of expr.args) {
+    if (typeof arg === 'string') {
+      evaledArgs.push({ text: arg });
+    } else {
+      evaledArgs.push(await runExpression(arg, message));
+    }
+  }
+  console.log('args', evaledArgs);
+
+  const textInput = evaledArgs.length > 0 ? evaledArgs[0].text : '';
+  const dataInput = evaledArgs.length > 0 ? evaledArgs[0].data : null;
+
+  // run the command
+  try {
+    const cmdPromise = plugins[0].func(
+      textInput,
+      { // message wrapper
+        id: message.id,
+        client: message.client,
+        author: message.author || message.user,
+        channel: message.channel,
+        isInteraction: message instanceof CommandInteraction,
+        reply: message instanceof CommandInteraction ? message.editReply : message.reply,
+        edit: message instanceof CommandInteraction ? message.editReply : message.edit,
+        raw: message,
+      },
+      {
+        text: textInput,
+        data: dataInput,
+        // rawArgs: cmd.rawArgs,
+        // last: i === (commands.length - 1),
+      },
+    );
+
+    if (cmdPromise && cmdPromise.catch) {
+      cmdPromise.catch((e) => {
+        logger.error(`error running command ${cmd.commandName}\n${e.stack}`);
+        throw new Error(`command ${cmd.commandName} failed`);
+      });
+    }
+    const result = await cmdPromise;
+    console.log('result', result);
+
+    let textOutput;
+    let dataOutput;
+
+    if (typeof result === 'string') {
+      textOutput = result;
+    } else if (result) {
+      // data output, check if the type is 'compose'
+      if (result.type === 'compose') {
+        // two arg fn, call it with both args
+        dataOutput = await result.fn(evaledArgs[0].data, evaledArgs[1].data);
+      } else {
+        dataOutput = result;
+      }
+    }
+
+    db.persistStore();
+
+    return {
+      text: textOutput,
+      data: dataOutput,
+    };
+  } catch (e) {
+    logger.error(`error running command ${expr.commandName}\n${e.stack}`);
+
+    if (e.userError) {
+      return { text: e.message };
+    }
+  }
+}
+
 async function registerSlashCommand() {
   client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) {
@@ -376,7 +465,41 @@ client.on('messageCreate', async (message) => {
   }
 
   let messageText;
-  if (message.content.startsWith(config.leader)) {
+  if (message.content.startsWith(config.leader + '?')) {
+    messageText = message.content.slice(2);
+    // expression format
+    // TODO move this!!
+    message.channel.sendTyping();
+
+    let commands;
+    try {
+      commands = parseExpression(messageText);
+    } catch(e) {
+      logger.error(e.stack);
+      message.channel.send(e.message);
+      return;
+    }
+
+    try {
+      const promise = runExpression(commands, message);
+      promise.catch((e) => {
+        logger.error(e.stack);
+      });
+      const result = await promise;
+      if (result && result.data && result.data.ext) {
+        const attachment = new MessageAttachment(result.data.data, `${message.id}.${result.data.ext}`);
+        message.channel.send({ files: [attachment] });
+      } else if (result && result.text) {
+        message.channel.send(result.text);
+      } else if (result && typeof result === 'string') {
+        message.channel.send(result);
+      }
+    } catch (e) {
+      logger.error(e.stack);
+    }
+    return;
+
+  } else if (message.content.startsWith(config.leader)) {
     // message starts with the leader
     messageText = message.content.slice(1);
   } else if (message.mentions.has(client.user)) {
