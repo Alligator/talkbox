@@ -148,7 +148,7 @@ async function runCommands(commands, message) {
             last: i === (commands.length - 1),
           },
         );
-        if (cmdPromise.catch) {
+        if (cmdPromise && cmdPromise.catch) {
           cmdPromise.catch((e) => {
             logger.error(`error running command ${cmd.commandName}\n${e.stack}`);
             throw new Error(`command ${cmd.commandName} failed`);
@@ -160,6 +160,7 @@ async function runCommands(commands, message) {
           // text output
           currentOutput = result;
         } else if (result) {
+          currentOutput = null;
           // data output, check if the type is 'compose'
           if (result.type === 'compose') {
             // if it is, add a new layer with this composition function
@@ -370,6 +371,10 @@ client.on('messageCreate', async (message) => {
     return;
   }
 
+  if (message.type === 'REPLY') {
+    return;
+  }
+
   let messageText;
   if (message.content.startsWith(config.leader)) {
     // message starts with the leader
@@ -377,7 +382,7 @@ client.on('messageCreate', async (message) => {
   } else if (message.mentions.has(client.user)) {
     // message mentions the bot, remove the mention
     messageText = message.content
-      .replace(/<@\d+>/, '')
+      .replace(/<@\!?\d+>/, '')
       .trim();
   } else {
     // try regex matches
