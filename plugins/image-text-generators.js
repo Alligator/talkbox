@@ -19,7 +19,7 @@ function createTextGenerator(font, lineHeight, opts = {}) {
       rightAlign = true;
     }
 
-    const { lines, longestLine } = textWrap(finalText, 30);
+    const { lines } = textWrap(finalText, 30);
 
     const height = lines.length * lineHeight;
     const canvas = createCanvas(100, height);
@@ -28,7 +28,13 @@ function createTextGenerator(font, lineHeight, opts = {}) {
     ctx.font = font;
     ctx.textBaseline = 'middle';
     ctx.fillStyle = 'white';
-    const metrics = ctx.measureText(longestLine);
+    let metrics;
+    lines.forEach((line) => {
+      const m = ctx.measureText(line);
+      if (!metrics || m.width > metrics.width) {
+        metrics = m;
+      }
+    });
 
     ctx.canvas.width = metrics.width + (padding * 2);
     ctx.font = font;
@@ -234,11 +240,10 @@ registerFont('plugins/fonts/dpquake.ttf', { family: 'dpquake' });
 registerFont('plugins/fonts/Omikron.TTF', { family: 'Omikron' });
 registerFont('plugins/fonts/dark-souls.ttf', { family: 'Garamond' });
 
-// createTextGenerator('30pt VCR OSD Mono', vcrNoise)('ISNT IT FUNNY HOW WHENEVER A PARTY SEEMS TO BE WINDING DOWN AT SOMEBODYS HOUSE, YOU CAN ALWAYS KEEP IT GOING BY TALKING A LOT AND EATING AND DRINKING WHATEVERS LEFT.');
-
 commands = {
-  papyrus: createTextGenerator('20pt Papyrus', 30),
+  papyrus: createTextGenerator('20pt Papyrus', 32),
   vcr,
+  vhs: vcr,
   quake: createTextGenerator('34pt dpquake', 70),
   omikronthenomadsoulbygamevisionaryandnotedabuserdavidcage: createTextGenerator('34pt Omikron', 50),
   darksouls: darkSouls,
