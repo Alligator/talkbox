@@ -94,23 +94,28 @@ async function img(text, message, { data }) {
 }
 
 function overlay(text, message) {
-  const gravity = text || 'centre';
+  const gravity = text || 'center';
   return {
     type: 'compose',
-    fn: async (img1, img2) => {
-      const img = await sharp(img1.data);
-      const imgMeta = await img.metadata();
+    fn: async (a, b) => {
+      const img1 = await sharp(a.data);
+      const img1Meta = await img1.metadata();
 
-      const resizedImg = await sharp(img2.data)
-        .resize({
-          width: imgMeta.width,
-          height: imgMeta.height,
-          fit: 'inside',
-        }).toBuffer();
+      let img2 = await sharp(b.data);
+      const img2Meta = await img2.metadata();
 
-      const result = await img
+      // if img2 is larger than img1, resize it to be the same size
+      if (img2.width > img1.width || img2.height > img1.height) {
+        img2 = await img2
+          .resize({
+            width: img1Meta.width,
+            height: img1Meta.height,
+            fit: 'inside',
+          });
+      }
+      const result = await img1
         .composite([{
-          input: resizedImg,
+          input: await img2.toBuffer(),
           gravity
         }])
         .toFormat('png')
