@@ -1,4 +1,5 @@
 const { createCanvas } = require('canvas');
+const { wrapTextForCanvas } = require('../plugins/utils/text-wrap');
 
 function star(text) {
   const canvas = createCanvas(100, 100);
@@ -36,7 +37,7 @@ function starText(ctx, x, y, radius, text) {
   ctx.save();
 
   // wrap lines
-  const wrapped = wrapText(ctx, text, radius * 0.7);
+  const wrapped = wrapTextForCanvas(ctx, text, radius * 0.7);
 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -58,39 +59,6 @@ function starText(ctx, x, y, radius, text) {
   }
 
   ctx.restore();
-}
-
-function wrapText(ctx, text, width) {
-  const lines = [];
-  let lastSpace = null;
-  let lastLineEnd = 0;
-  let i = 0;
-  while (i < text.length) {
-    if (text[i] === ' ') {
-      lastSpace = i;
-    }
-
-    const metrics = ctx.measureText(text.slice(lastLineEnd, i));
-    if (metrics.width > width) {
-      if (lastSpace === null) {
-        // no space on the this line, split the word
-        lines.push(text.slice(lastLineEnd, i-1));
-        lastLineEnd = i-1;
-        i++;
-      } else {
-        // split at last space and rewind to there
-        lines.push(text.slice(lastLineEnd, lastSpace));
-        lastLineEnd = lastSpace + 1; // eat the space
-        i = lastLineEnd;
-        lastSpace = null;
-      }
-    } else {
-      i++;
-    }
-  }
-
-  lines.push(text.slice(lastLineEnd));
-  return lines;
 }
 
 commands = { 'new': star, star };

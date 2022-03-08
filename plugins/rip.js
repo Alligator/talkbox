@@ -1,4 +1,4 @@
-const textWrap = require('../plugins/utils/text-wrap');
+const { textWrap } = require('../plugins/utils/text-wrap');
 
 const fill = (str, width) => new Array(width).fill(str).join('');
 const centre = (str, width, filler = ' ') => {

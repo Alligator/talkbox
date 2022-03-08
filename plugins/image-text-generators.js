@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { registerFont, createCanvas, Image } = require('canvas');
-const textWrap = require('../plugins/utils/text-wrap');
+const { textWrap } = require('../plugins/utils/text-wrap');
 
 function createTextGenerator(font, lineHeight, opts = {}) {
   const padding = 4;

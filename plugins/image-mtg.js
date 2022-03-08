@@ -1,6 +1,7 @@
 const { loadImage, createCanvas, registerFont } = require('canvas');
 const getMostRecentImage = require('../plugins/utils/most-recent-image');
 const config = require('../config.json');
+const { wrapTextForCanvas } = require('../plugins/utils/text-wrap');
 
 registerFont('plugins/fonts/CrimsonPro-Bold.ttf', { family: 'Crimson_Bold' });
 registerFont('plugins/fonts/CrimsonPro-Medium.ttf', { family: 'Crimson_Medium' });
@@ -27,41 +28,6 @@ async function getMessages(message, count) {
   }
 
   return foundMessages;
-}
-
-
-function wrapText(ctx, text, width) {
-  const lines = [];
-  let lastSpace = null;
-  let lastLineEnd = 0;
-  let i = 0;
-  while (i < text.length) {
-    if (text[i] === ' ') {
-      lastSpace = i;
-      console.log('found space!');
-    }
-
-    const metrics = ctx.measureText(text.slice(lastLineEnd, i));
-    if (metrics.width > width) {
-      if (lastSpace === null) {
-        // no space on the this line, split the word
-        lines.push(text.slice(lastLineEnd, i-1));
-        lastLineEnd = i-1;
-        i++;
-      } else {
-        // split at last space and rewind to there
-        lines.push(text.slice(lastLineEnd, lastSpace));
-        lastLineEnd = lastSpace + 1; // eat the space
-        i = lastLineEnd;
-        lastSpace = null;
-      }
-    } else {
-      i++;
-    }
-  }
-
-  lines.push(text.slice(lastLineEnd));
-  return lines;
 }
 
 async function mtg(text, message, currentOutput) {
@@ -108,7 +74,7 @@ async function mtg(text, message, currentOutput) {
 
   // draw the body text
   ctx.font = `12pt ${font}`;
-  const lines = wrapText(ctx, body.cleanContent, 312);
+  const lines = wrapTextForCanvas(ctx, body.cleanContent, 312);
   let y = 374;
   let i = 0;
   for (const line of lines) {
@@ -124,7 +90,7 @@ async function mtg(text, message, currentOutput) {
 
   // draw the footer
   ctx.font = `italic 12pt ${italicFont}`;
-  const footerLines = wrapText(ctx, footer.cleanContent, 312);
+  const footerLines = wrapTextForCanvas(ctx, footer.cleanContent, 312);
   y = 465;
   i = 0;
   for (const line of footerLines) {

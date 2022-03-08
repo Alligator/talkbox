@@ -31,4 +31,45 @@ function textWrap(text, width) {
   return { lines, longestLine };
 }
 
-module.exports = textWrap;
+function wrapTextForCanvas(ctx, text, width) {
+  const lines = [];
+  let lastSpace = null;
+  let lastLineEnd = 0;
+  let i = 0;
+  while (i < text.length) {
+    if (text[i] === ' ') {
+      lastSpace = i;
+    }
+
+    if (text[i] === '\n') {
+      lines.push(text.slice(lastLineEnd, i));
+      lastLineEnd = i+1;
+      lastSpace = null;
+      i++;
+      continue;
+    }
+
+    const metrics = ctx.measureText(text.slice(lastLineEnd, i));
+    if (metrics.width > width) {
+      if (lastSpace === null) {
+        // no space on the this line, split the word
+        lines.push(text.slice(lastLineEnd, i-1));
+        lastLineEnd = i-1;
+        i++;
+      } else {
+        // split at last space and rewind to there
+        lines.push(text.slice(lastLineEnd, lastSpace));
+        lastLineEnd = lastSpace + 1; // eat the space
+        i = lastLineEnd;
+        lastSpace = null;
+      }
+    } else {
+      i++;
+    }
+  }
+
+  lines.push(text.slice(lastLineEnd));
+  return lines;
+}
+
+module.exports = { textWrap, wrapTextForCanvas };
