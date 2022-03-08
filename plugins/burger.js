@@ -17,15 +17,18 @@ function burgerBottom(text) {
   };
 }
 
-function burgerFilling() {
+function burgerFilling(text) {
+  const n = parseInt(text);
+  const limit = Math.min(isNaN(n) ? 5 : n, 20);
   const db = sqlite('/home/alligator/dev/meal-rater/messages.db');
   const results = db.prepare(`
     select *
     from messages
     where content != ''
+    and content not like 'http%'
     order by random()
-    limit 5
-  `).all();
+    limit ?
+  `).all(limit);
 
   const filling = results
     .map(m => m.content)
