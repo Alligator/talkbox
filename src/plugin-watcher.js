@@ -38,6 +38,9 @@ class PluginWatcher {
     // intervals are used internally to debounce file loading
     this.loadPluginIntervals = {};
 
+    this.globalDb = db.createContext('global');
+
+
     // initial load
     const files = fs.readdirSync('plugins');
     files.map((fileName) => {
@@ -58,6 +61,7 @@ class PluginWatcher {
         clearInterval,
         require,
         db: db.createContext(path.basename(fileName, '.js')),
+        globalDb: this.globalDb,
         log: pluginLog(fileName),
         Math,
         process,
@@ -67,6 +71,7 @@ class PluginWatcher {
         Buffer,
         gc,
         sql,
+        pluginWatcher: this,
       };
       vm.runInNewContext(file.toString(), sandbox, { displayErrors: true, filename: fileName });
       this.plugins[fileName] = Object.assign({}, sandbox);
@@ -100,6 +105,7 @@ class PluginWatcher {
           name: commandName,
           func: plugin.commands[commandName],
           help: plugin.commands[commandName]._help,
+          channels: plugin.commands[commandName]._channels,
           fileName,
         };
       });

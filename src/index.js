@@ -1,4 +1,4 @@
-const { Client, Intents, MessageEmbed, MessageAttachment, CommandInteraction } = require('discord.js');
+const { Client, Intents, MessageEmbed, MessageAttachment, CommandInteraction, MessageMentions } = require('discord.js');
 const repl = require('repl');
 const axios = require('axios');
 
@@ -36,7 +36,7 @@ async function fetchFirstAttachment(message) {
 
   return {
     data: resp.data,
-    ext: attachment.filename.split('.').slice(-1),
+    ext: attachment.name.split('.').slice(-1)[0],
   };
 }
 
@@ -108,7 +108,8 @@ async function runCommands(commands, message) {
     // instead of running it display the help
     const showHelp = cmd.commandName === 'help';
     const commandName = showHelp ? cmd.args[0] : cmd.commandName;
-    const plugins = pw.getCommands(commandName);
+    const plugins = pw.getCommands(commandName)
+      .filter(p => !p.channels || p.channels.includes(message.guildId));
 
     if (showHelp) {
       if (plugins.length === 1) {
@@ -122,6 +123,10 @@ async function runCommands(commands, message) {
       if (!commandName) {
         const embed = new MessageEmbed();
         const commandNames = Object.keys(pw.commands)
+          .filter((key) => {
+            const plug = pw.commands[key];
+            return !plug.channels || plug.channels.includes(message.guildId);
+          })
           .sort((a, b) => a.localeCompare(b))
         let embeds = ['', '', ''];
         for (let i = 0; i < commandNames.length; i++) {
@@ -130,6 +135,7 @@ async function runCommands(commands, message) {
         }
 
         embeds.forEach(e => embed.addField('\u200B', e, true));
+        embed.addField('how-to use me', 'https://alligatr.co.uk/homero/');
         embed.setTitle('available commands');
         message.channel.send({ embeds: [embed] });
         return;
@@ -158,6 +164,7 @@ async function runCommands(commands, message) {
           {
             text: currentOutput,
             data: layer.data,
+            args: cmd.args,
             rawArgs: cmd.rawArgs,
             last: i === (commands.length - 1),
           },
@@ -174,7 +181,7 @@ async function runCommands(commands, message) {
           // text output
           currentOutput = result;
         } else if (result) {
-          currentOutput = null;
+          // currentOutput = null;
           // data output, check if the type is 'compose'
           if (result.type === 'compose') {
             // if it is, add a new layer with this composition function
@@ -413,27 +420,27 @@ client.on('ready', () => {
 
   replServer.defineCommand('channels', {
     help: 'channels - list the channels the bot is in',
-    action: function () {
-      const message = client.guilds
-        .map((guild) => {
-          const channels = guild.channels
-            .map(c => `  ${c.id} - ${c.name}`)
-            .join('\n');
-          return `${guild.id} - ${guild.name}\n${channels}`;
-        })
-        .join('\n');
-      console.log(message);
+    action: async function () {
+      const guilds = await client.guilds.fetch();
+      for (const [id, baseGuild] of guilds) {
+        const guild = await baseGuild.fetch();
+        const channels = await guild.channels.fetch();
+        const channelNames = channels
+          .map(c => `  ${c.id} - ${c.name}`)
+          .join('\n');
+        console.log(`${guild.id} - ${guild.name}\n${channelNames}`);
+      }
       replServer.displayPrompt();
     },
   });
 
   replServer.defineCommand('send', {
     help: 'send id message - send message to the channel or user with id',
-    action: function (args) {
+    action: async function (args) {
       const sp = args.split(' ');
       const id = sp[0];
       const msg = sp.slice(1).join(' ');
-      const recipient = client.channels.get(id) || client.users.get(id);
+      const recipient = await (client.channels.fetch(id) || client.users.fetch(id));
       if (recipient) {
         recipient.send(msg);
       }
@@ -516,7 +523,7 @@ client.on('messageCreate', async (message) => {
   } else if (message.content.startsWith(config.leader)) {
     // message starts with the leader
     messageText = message.content.slice(1);
-  } else if (message.mentions.has(client.user)) {
+  } else if (message.mentions.has(client.user) && !message.mentions.everyone) {
     // message mentions the bot, remove the mention
     messageText = message.content
       .replace(/<@\!?\d+>/, '')
@@ -540,6 +547,11 @@ client.on('messageCreate', async (message) => {
     return;
   }
 
+  if (/^[A-Z]+$/.test(messageText)) {
+    message.channel.send('PLEASE DONT YELL I AM VERY NERVOUS');
+    return;
+  }
+
   message.channel.sendTyping();
 
   const commands = parseCommands(messageText);
@@ -551,6 +563,9 @@ client.on('messageCreate', async (message) => {
     const result = await promise;
     if (result && result.data && result.data.ext) {
       const attachment = new MessageAttachment(result.data.data, `${message.id}.${result.data.ext}`);
+      if (result.data.desc) {
+        attachment.description = result.data.desc;
+      }
       message.channel.send({ files: [attachment] });
     } else if (result && result.text) {
       message.channel.send(result.text);

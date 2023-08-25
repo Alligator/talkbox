@@ -33,7 +33,12 @@ function log(message) {
 
 function logMessage(message) {
   if (message.guild) {
-    log(`${message.id} ${message.guild.name}[${message.channel.name}] <${message.author.username}> ${message.cleanContent}`);
+    let attachments = '';
+    if (message.attachments && message.attachments.size) {
+      const urls = message.attachments.map(a => a.url).join(', ');
+      attachments = ` (attachments: ${urls})`;
+    }
+    log(`${message.id} ${message.guild.name}[${message.channel.name}] <${message.author.username}> ${message.cleanContent}${attachments}`);
     db.prepare(`
       INSERT INTO logs
         (messageId, guildId, guildName, authorId, authorName, channelid, channelName, content)
