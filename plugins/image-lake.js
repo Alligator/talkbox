@@ -1,7 +1,7 @@
 const sharp = require('sharp');
 const GIFEncoder = require('gif-encoder-2');
 const { createCanvas, Image, ImageData } = require('canvas');
-const getMostRecentImage = require('../plugins/utils/most-recent-image');
+const { getMostRecentImage } = require('../plugins/utils/image');
 
 async function lakeCmd(text, message, currentOutput) {
   let inputImg;

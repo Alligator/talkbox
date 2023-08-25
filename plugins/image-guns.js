@@ -1,9 +1,21 @@
 const fs = require('fs');
 const sharp = require('sharp');
 const gm = require('gm');
-const getMostRecentImage = require('../plugins/utils/most-recent-image');
+const { getMostRecentImage } = require('../plugins/utils/image');
 
 async function gun(text, message, currentOutput) {
+  const guns = fs.readdirSync('plugins/guns')
+    .filter(f => f.endsWith('.png'));
+  const gunFile = guns[Math.floor(Math.random() * guns.length)];
+  return await renderGun(gunFile, text, message, currentOutput);
+}
+
+async function paw(text, message, currentOutput) {
+  const gunFile = 'centre-rott-3.png';
+  return await renderGun(gunFile, text, message, currentOutput);
+}
+
+async function renderGun(gunFile, text, message, currentOutput) {
   let inputImg;
   if (currentOutput.data) {
     inputImg = currentOutput.data.data;
@@ -15,9 +27,6 @@ async function gun(text, message, currentOutput) {
     }
   }
 
-  const guns = fs.readdirSync('plugins/guns')
-    .filter(f => f.endsWith('.png'));
-  const gunFile = guns[Math.floor(Math.random() * guns.length)];
   const gunData = fs.readFileSync(`plugins/guns/${gunFile}`);
   const gun = sharp(gunData);
   const gunMeta = await gun.metadata();
@@ -56,4 +65,4 @@ async function gun(text, message, currentOutput) {
   };
 }
 
-commands = { gun };
+commands = { gun, paw };

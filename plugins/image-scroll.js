@@ -1,6 +1,6 @@
 const GIFEncoder = require('gif-encoder-2');
 const { createCanvas, Image } = require('canvas');
-const getMostRecentImage = require('../plugins/utils/most-recent-image');
+const { getMostRecentImage } = require('../plugins/utils/image');
 
 async function scroll(text, message, currentOutput) {
   let inputImg;
@@ -14,7 +14,8 @@ async function scroll(text, message, currentOutput) {
     }
   }
 
-  const loop = text === 'loop';
+  const loop = text?.includes('loop');
+  const down = text?.includes('down');
 
   return new Promise((resolve) => {
     const img = new Image();
@@ -30,7 +31,7 @@ async function scroll(text, message, currentOutput) {
 
       const step = Math.max(Math.ceil(img.height / 40), 1);
 
-      for (let y = img.height; y > -img.height; y -= step) {
+      const draw = (y) => {
         ctx.clearRect(0, 0, img.width, img.height);
         ctx.drawImage(img, 0, y);
         if (loop) {
@@ -38,6 +39,16 @@ async function scroll(text, message, currentOutput) {
           ctx.drawImage(img, 0, y - img.height);
         }
         encoder.addFrame(ctx);
+      };
+
+      if (down) {
+        for (let y = -img.height; y < img.height; y += step) {
+          draw(y);
+        }
+      } else {
+        for (let y = img.height; y > -img.height; y -= step) {
+          draw(y);
+        }
       }
 
       encoder.finish();

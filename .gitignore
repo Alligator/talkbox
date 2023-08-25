@@ -9,3 +9,4 @@ plugins/archive
 config.json
 persist.json
 tmp/
+plugins/chiles.txt

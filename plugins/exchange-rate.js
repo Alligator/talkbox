@@ -70,4 +70,4 @@ async function exchangerate(text) {
 
 exchangerate._help = 'exchangerate amount FROM TO - convert amount between currencies';
 
-commands = { exchangerate };
+commands = { exchangerate, currency: exchangerate };

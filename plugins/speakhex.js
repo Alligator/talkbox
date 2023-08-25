@@ -56,4 +56,4 @@ function speakhex(text) {
   return words.join(' ');
 }
 
-commands = { sayhex: speakhex };
+commands = { hexspeak: speakhex };

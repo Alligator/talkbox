@@ -16,10 +16,6 @@ async function getLastMessage(message) {
 }
 
 async function spoiler(text, message) {
-  if (!message.raw.member.permissions.has('275466495654625280') && message.author.id !== config.owner_id) {
-    return
-  }
-
   const lastMsg = await getLastMessage(message);
 
   const spoilerAttachments = lastMsg.attachments.map((a) => {

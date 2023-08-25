@@ -4,7 +4,7 @@ const GIFEncoder = require('gif-encoder-2');
 const { createCanvas, Image, ImageData } = require('canvas');
 const { parseGIF, decompressFrames } = require('gifuct-js');
 const gm = require('gm');
-const getMostRecentImage = require('../plugins/utils/most-recent-image');
+const { getMostRecentImage } = require('../plugins/utils/image');
 const util = require('util');
 
 function rotate(img, degrees) {

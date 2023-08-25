@@ -1,5 +1,17 @@
 const { hyphenateSync } = require('hyphen/en');
+const nlp = require('compromise');
 const fs = require('fs');
+const { shouldShutUp } = require('../plugins/utils/spam-check');
+
+const allowedChannels = [
+  '191333880823939073', // margs
+  '293237101120454658', // audio
+  '191015116655951872', // lawbreakers
+  '365704891408056330', // sludge realm
+  '279056857287491585', // spam
+
+  '368082254871658505', // my server (general)
+];
 
 let dbg = () => {};
 if (true) {
@@ -83,39 +95,59 @@ function hyphenate(word) {
 }
 
 function sub(word) {
-  const sylPoints = hyphenate(word);
+  // const subWord = { start: 'b', vowel: 'u', end: 'tt', plural: 's' };
+  const subWord = { start: 'p', vowel: 'i', end: 'ss', plural: 'es', };
+  const match = /([^A-Za-z]*)(.*?)([^A-Za-z]*)$/.exec(word);
+  if (match.length !== 4) {
+    return word;
+  }
+  const isPlural = nlp(word).has('#Plural');
+  const [_, startPunc, cleanWord, endPunc] = match;
+  const sylPoints = hyphenate(cleanWord);
 
   // pick a syllable, weighted to earlier ones
   const sylIndex = sylPoints.length - 1 - Math.floor((Math.random() * (sylPoints.length ** 2)) ** (1 / 2));
   const syl = sylPoints[sylIndex];
+  const replacingLastSyllable = sylIndex === sylPoints.length - 1;
 
   // expand the syllable forwards and backwards while it starts with 'b' or ends with 't'
   let left = syl;
-  let right = sylPoints[sylIndex + 1] || word.length;
+  let right = sylPoints[sylIndex + 1] || cleanWord.length;
 
-  while (left > 0 && word[left - 1] === 'b') {
+  while (left > 0 && cleanWord[left - 1] === subWord.start[0]) {
     left--;
   }
 
-  while (right < word.length - 1 && word[right] === 't') {
+  while (right < cleanWord.length - 1 && cleanWord[right] === subWord.end[0]) {
     right++;
   }
 
-  const vowelCount = countRepeatedVowels(word.substring(left, right));
-  let butt = 'b' + 'u'.repeat(Math.max(vowelCount, 1)) + 'tt';
+  const vowelCount = countRepeatedVowels(cleanWord.substring(left, right));
+  let butt = subWord.start + subWord.vowel.repeat(Math.max(vowelCount, 1)) + subWord.end;
 
-  // preserve capitals
-  for (let i = 0; i < butt.length; i++) {
-    const c = word[left + i];
-    if (/[A-Z]/.test(c)) {
-      butt = butt.substring(0, i)
-        + butt[i].toUpperCase()
-        + butt.substring(i + 1);
+  // all caps
+  if (!/[a-z]/.test(cleanWord.substring(left, right))) {
+    butt = butt.toUpperCase();
+  } else if (/[A-Z]/.test(cleanWord.substring(left, right))) {
+    // preserve capitals
+    for (let i = 0; i < butt.length; i++) {
+      const c = cleanWord[left + i];
+      if (/[A-Z]/.test(c)) {
+        butt = butt.substring(0, i)
+          + butt[i].toUpperCase()
+          + butt.substring(i + 1);
+      }
     }
   }
 
   // sub it
-  const subbed = word.substring(0, left) + butt + word.substring(right);
+  const subbed =
+    startPunc
+    + cleanWord.substring(0, left)
+    + butt
+    + cleanWord.substring(right)
+    + (replacingLastSyllable && isPlural ? subWord.plural : '')
+    + endPunc;
   return subbed;
 }
 
@@ -133,13 +165,9 @@ function countRepeatedVowels(syllable) {
 }
 
 function buttify(text) {
-  if (text === 'stop') {
-    buttEnabled = false;
-    return 'butt disabled';
-  }
-  if (text === 'start') {
-    buttEnabled = true;
-    return 'butt enabled';
+  if (/https?:\/\//.test(text)) {
+    // ignore messages with urls
+    return null;;
   }
 
   dbg(text);
@@ -154,12 +182,13 @@ function buttify(text) {
     validWords.push(i);
   }
 
-  if (validWords.length === 0) {
+  if (validWords.length <= 0) {
+    // don't butt if we have 0 or 1 words left
     return null;
   }
 
-  dbg(JSON.stringify(words));
-  dbg(JSON.stringify(validWords));
+  dbg('words', JSON.stringify(words));
+  dbg('validWords', JSON.stringify(validWords));
 
   // sort validWords by length
   validWords.sort((a, b) => {
@@ -167,7 +196,7 @@ function buttify(text) {
   });
 
   // decide how many words to butt
-  const wordsToButt = Math.ceil(Math.random() * (validWords.length * 0.1));
+  const wordsToButt = Math.ceil(Math.random() * (validWords.length * 0.2));
 
   // do the thang ding
   for (let i = 0; i < wordsToButt; i++) {
@@ -187,13 +216,21 @@ function buttify(text) {
 
 readStopwords();
 
-const buttChance = 0.05;
+const buttChance = 0.01;
 const buttDelay = 50;
 let currentDelay = 0;
 let buttEnabled = true;
 
 function buttMsg(match, message) {
   if (!buttEnabled) {
+    return;
+  }
+
+  if (shouldShutUp(globalDb)) {
+    return;
+  }
+
+  if (!allowedChannels.includes(message.channel.id)) {
     return;
   }
 
@@ -206,4 +243,16 @@ function buttMsg(match, message) {
 
 buttMsg._regex = /./;
 
-commands = { buttify };
+function buttCmd(text, message, currentOutput) {
+  if (text === 'stop') {
+    buttEnabled = false;
+    return 'butt disabled';
+  }
+  if (text === 'start') {
+    buttEnabled = true;
+    return 'butt enabled';
+  }
+  return buttify(currentOutput.rawArgs || text);
+}
+
+commands = { butt: buttCmd };

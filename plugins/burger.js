@@ -26,6 +26,7 @@ function burgerFilling(text) {
     from messages
     where content != ''
     and content not like 'http%'
+    and length(content) < 20
     order by random()
     limit ?
   `).all(limit);

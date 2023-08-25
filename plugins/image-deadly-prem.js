@@ -1,4 +1,5 @@
 const { createCanvas, Image } = require('canvas');
+const { textWrap } = require('../plugins/utils/text-wrap');
 
 const GLYPH_WIDTH = 64;
 const GLYPH_HEIGHT = 56;
@@ -11,28 +12,16 @@ const MAX_LINE_WIDTH = 40;
 
 function deadlyPrem(text) {
   function drawString(ctx, img, text) {
-    // wrap text
-    const words = text.substring(0, 400).split(/ +/);
-    const lines = [words[0]];
+    const { lines, longestLine } = textWrap(text, MAX_LINE_WIDTH);
 
-    words.slice(1).forEach((word) => {
-      if (lines[lines.length - 1].length + word.length + 1 > MAX_LINE_WIDTH) {
-        lines.push(word);
-      } else {
-        lines[lines.length - 1] += ` ${word}`;
-      }
-    });
-
-    const longestLine = lines.reduce((longest, line) => Math.max(longest, line.length), 0);
-
-    // draw glyphs
-    const lightCanvas = createCanvas(longestLine * OUTPUT_GLYPH_WIDTH, lines.length * GLYPH_HEIGHT);
+    // drak glyphs
+    const lightCanvas = createCanvas(longestLine.length * OUTPUT_GLYPH_WIDTH, lines.length * GLYPH_HEIGHT);
     const lightCtx = lightCanvas.getContext('2d');
 
     // DEBUG
     lines.forEach((line, lineIdx) => {
       const cy = lineIdx * GLYPH_HEIGHT;
-      let cx = Math.floor((longestLine - line.length) / 2) * OUTPUT_GLYPH_WIDTH;
+      let cx = Math.floor((longestLine.length - line.length) / 2) * OUTPUT_GLYPH_WIDTH;
       line.split('').forEach((char) => {
         const idx = GLYPH_MAP.indexOf(char);
         if (idx >= 0) {
@@ -66,7 +55,6 @@ function deadlyPrem(text) {
 
   return new Promise((resolve) => {
     const img = new Image();
-    log('aaa');
     img.onload = () => {
       const canvas = createCanvas(100, 100);
       const ctx = canvas.getContext('2d');

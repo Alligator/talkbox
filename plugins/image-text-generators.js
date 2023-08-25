@@ -234,11 +234,77 @@ function darkSouls(text, message, currentOutput) {
   return { data: buf, ext: 'png' };
 }
 
+function notes(text, message, currentOutput) {
+  const lineHeight = 32;
+  const padding = 8;
+  const leftMargin = 24;
+
+  let finalText = (currentOutput.rawArgs || text)
+    .replace(/```/g, '');
+
+  const { lines } = textWrap(finalText, 30);
+
+  const height = lines.length * lineHeight + padding * 2;
+  const canvas = createCanvas(100, height);
+  const ctx = canvas.getContext('2d');
+
+  ctx.font = '20pt "Marker Felt"';
+  ctx.textBaseline = 'middle';
+  let metrics;
+  lines.forEach((line) => {
+    const m = ctx.measureText(line);
+    if (!metrics || m.width > metrics.width) {
+      metrics = m;
+    }
+  });
+
+  ctx.canvas.width = metrics.width + (padding * 2) + leftMargin;
+  ctx.font = '20pt "Marker Felt"';
+  ctx.textBaseline = 'middle';
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+  gradient.addColorStop(0, 'rgb(250, 250, 196)');
+  gradient.addColorStop(0.5, 'rgb(249, 247, 165)');
+  gradient.addColorStop(1, 'rgb(250, 250, 196)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+  ctx.textAlign = 'left';
+
+  ctx.fillStyle = 'black';
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    ctx.fillText(line, leftMargin + padding / 2, i * lineHeight + (lineHeight / 2) + padding);
+    ctx.beginPath()
+    ctx.moveTo(0, (i + 1) * lineHeight - 4 + padding);
+    ctx.lineTo(ctx.canvas.width, (i + 1) * lineHeight - 4 + padding);
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = 'rgba(200, 64, 64, 0.75)';
+  ctx.beginPath();
+  ctx.moveTo(leftMargin/2 - 3, 0);
+  ctx.lineTo(leftMargin/2 - 3, ctx.canvas.height);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(leftMargin/2, 0);
+  ctx.lineTo(leftMargin/2, ctx.canvas.height);
+  ctx.stroke();
+
+  const buf =  canvas.toBuffer('image/png');
+  return { data: buf, ext: 'png' };
+}
+
 registerFont('plugins/fonts/papyrus.ttf', { family: 'Papyrus' });
 registerFont('plugins/fonts/VCR_OSD_MONO_1.001.ttf', { family: 'VCR OSD Mono' });
 registerFont('plugins/fonts/dpquake.ttf', { family: 'dpquake' });
 registerFont('plugins/fonts/Omikron.TTF', { family: 'Omikron' });
 registerFont('plugins/fonts/dark-souls.ttf', { family: 'Garamond' });
+registerFont('plugins/fonts/Inter-V.ttf', { family: 'Inter' , weight: 'bold' });
+registerFont('plugins/fonts/marker-felt.ttf', { family: 'Marker Felt' });
 
 commands = {
   papyrus: createTextGenerator('20pt Papyrus', 32),
@@ -247,4 +313,6 @@ commands = {
   quake: createTextGenerator('34pt dpquake', 70),
   omikronthenomadsoulbygamevisionaryandnotedabuserdavidcage: createTextGenerator('34pt Omikron', 50),
   darksouls: darkSouls,
+  sansserif: createTextGenerator('20pt Inter', 32),
+  notes,
 };

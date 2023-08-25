@@ -1,11 +1,19 @@
 const config = require('../config.json');
 
-function memory() {
+async function memory(text, message) {
   const memUsage = process.memoryUsage();
   const msg = Object.keys(memUsage)
     .map(key => `${key}: ${(memUsage[key] / 1024 / 1024).toFixed(2)}`)
     .join('\n');
-  return 'memory usage:\n```' + new Date().toISOString() + '\n' + msg + '```';
+
+  if (message.raw instanceof Discord.CommandInteraction) {
+    await message.raw.reply({
+      content: 'memory usage:\n```' + new Date().toISOString() + '\n' + msg + '```',
+      ephemeral: true,
+    });
+  } else {
+    return 'memory usage:\n```' + new Date().toISOString() + '\n' + msg + '```';
+  }
 }
 memory._help = 'show memory usage';
 

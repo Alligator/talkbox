@@ -44,7 +44,7 @@ const imgCommands = {
     fn: (img, radius) => img.emboss(radius),
   },
   enhance: { fn: img => img.enhance() },
-  flip: { fn: img => img.enhance() },
+  flip: { fn: img => img.flip() },
   monochrome: { fn: img => img.monochrome() },
   sharpen: {
     args: ['fradius'],

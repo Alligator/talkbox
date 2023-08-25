@@ -20,7 +20,7 @@ const stopwords = [
 
 function torture(text) {
   return text.replaceAll(
-    /[a-zA-Z]+/g,
+    /[a-zA-Z']+/g,
     (word) => {
       log(`"${word}"`);
       if (stopwords.includes(word.toLowerCase())) {
@@ -28,7 +28,7 @@ function torture(text) {
         return word;
       }
 
-      const synonyms = thesaurus.find(word);
+      const synonyms = thesaurus.find(word.toLowerCase());
       if (synonyms.length === 0) {
         log('  no synonyms');
         return word;
@@ -37,4 +37,4 @@ function torture(text) {
     });
 }
 
-commands = { torture };
+commands = { torture, synonyms: torture };

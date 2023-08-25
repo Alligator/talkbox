@@ -28,8 +28,11 @@ function generateFrames(text) {
 
   let textIdx = 0;
 
+  text = Array.from(text);
+
   while (textIdx < text.length) {
     let c = text[textIdx];
+    log('"' + c + '"');
     let delay = 0;
 
     if (prev === null) {

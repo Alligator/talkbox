@@ -1,6 +1,6 @@
 const sharp = require('sharp');
 const axios = require('axios');
-const getMostRecentImage = require('../plugins/utils/most-recent-image');
+const { getMostRecentImage } = require('../plugins/utils/image');
 
 async function bigger(text, message, currentOutput) {
   let img;

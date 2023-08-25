@@ -1,5 +1,5 @@
 const { loadImage, createCanvas, registerFont } = require('canvas');
-const getMostRecentImage = require('../plugins/utils/most-recent-image');
+const { getMostRecentImage } = require('../plugins/utils/image');
 const config = require('../config.json');
 const { wrapTextForCanvas } = require('../plugins/utils/text-wrap');
 

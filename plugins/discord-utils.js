@@ -5,4 +5,5 @@ async function guilds(text, message) {
   return reply.toString();
 }
 
+guilds._channels = ['368082254871658503'];
 commands = { guilds };

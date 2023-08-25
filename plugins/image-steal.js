@@ -47,7 +47,7 @@ function steal(text) {
     if (i % 8 === 0) {
       zoom = !zoom;
       if (zoom) {
-        const zoomLevel = 0.8 + (1 + Math.sin(i * 3)) * 0.1;
+        const zoomLevel = 0.9 + (1 + Math.sin(i * 3)) * 0.05;
         ctx.translate(
            0 -((canvas.width * zoomLevel) - canvas.width) / 2,
            0 -((canvas.height * zoomLevel) - canvas.height) / 2,
